@@ -1,0 +1,28 @@
+Cliente,Tiempo de Llegada R,Tiempo de Llegada,,,Reloj,Evento,Acción,Próximo Evento,N(t),Cola
+1,4,2,2,,0,Inicialización,Sistema vacío,A en t=2,0,Vacía
+2,4,3,5,,2,Llegada (A1),Servidor libre ? ocupado. Inicia servicio,"D en t=5 , A en t=5",1,Vacía
+3,2,2,7,,5,Llegada (A2),Atiende a A2,"D en t=9 , A en t=7",1,Vacía
+4,3,4,11,,7,Llegada (A3),Servidor ocupado. Entra a cola,"D en t= 12, A en t=11",2,[A3]
+5,3,3,14,,9,Salida (A2),Atiende a A3,A en t=14,1,Vacía
+6,3,2,,,11,Llegada (A4),Servidor ocupado. Entra a cola,D en  t=17,2,[A4]
+7,2,3,,,12,Salida (A3),Atiende a A4,,1,Vacía
+8,3,3,,,14,Llegada (A5),Servidor ocupado. Entra a cola,D en t=22,2,[A5]
+9,4,2,,,17,Salida (A4),Atiende a A5,,1,Vacía
+10,2,4,,,22,Salida (A5),Servidor libre ,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+Agente,Cliente,Tiempo de Atención R,Tiempo de Atención,,,,,,,
+1,1,5,3,,,,,,,
+,2,4,4,,,,,,,
+,3,3,3,,,,,,,
+,4,6,5,,,,,,,
+,5,3,5,,,,,,,
+,6,5,6,,,,,,,
+,7,3,4,,,,,,,
+,8,5,2,,,,,,,
+,9,2,2,,,,,,,
+,10,6,6,,,,,,,
