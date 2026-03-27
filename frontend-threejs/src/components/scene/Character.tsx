@@ -103,11 +103,11 @@ function OvalCharacter() {
         {plasticMat(c.legs)}
       </mesh>
       {/* Rounded boots */}
-      <mesh position={[-0.22, -0.02, 0.06]} scale={[1.1, 0.7, 1.3]} castShadow>
+      <mesh position={[-0.22, -0.02, -0.06]} scale={[1.1, 0.7, 1.3]} castShadow>
         <sphereGeometry args={[0.12, 16, 16]} />
         {plasticMat(c.shoes)}
       </mesh>
-      <mesh position={[0.22, -0.02, 0.06]} scale={[1.1, 0.7, 1.3]} castShadow>
+      <mesh position={[0.22, -0.02, -0.06]} scale={[1.1, 0.7, 1.3]} castShadow>
         <sphereGeometry args={[0.12, 16, 16]} />
         {plasticMat(c.shoes)}
       </mesh>
@@ -152,11 +152,15 @@ function SphereCharacter() {
         {plasticMat(c.legs)}
       </mesh>
       {/* Boots */}
-      <mesh position={[-0.14, -0.04, 0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
+      <mesh
+        position={[-0.14, -0.04, -0.05]}
+        scale={[1.0, 0.65, 1.2]}
+        castShadow
+      >
         <sphereGeometry args={[0.11, 14, 14]} />
         {plasticMat(c.shoes)}
       </mesh>
-      <mesh position={[0.14, -0.04, 0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
+      <mesh position={[0.14, -0.04, -0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
         <sphereGeometry args={[0.11, 14, 14]} />
         {plasticMat(c.shoes)}
       </mesh>
@@ -201,11 +205,15 @@ function CapsuleCharacter() {
         {plasticMat(c.legs)}
       </mesh>
       {/* Boots */}
-      <mesh position={[-0.15, -0.04, 0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
+      <mesh
+        position={[-0.15, -0.04, -0.05]}
+        scale={[1.0, 0.65, 1.2]}
+        castShadow
+      >
         <sphereGeometry args={[0.11, 14, 14]} />
         {plasticMat(c.shoes)}
       </mesh>
-      <mesh position={[0.15, -0.04, 0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
+      <mesh position={[0.15, -0.04, -0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
         <sphereGeometry args={[0.11, 14, 14]} />
         {plasticMat(c.shoes)}
       </mesh>
