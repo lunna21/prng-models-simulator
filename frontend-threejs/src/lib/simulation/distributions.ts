@@ -55,7 +55,7 @@ export function generateTime(
 }
 
 /**
- * Default arrival time table (example from reference CSV)
+ * Default arrival time table
  */
 export function getDefaultArrivalTable(): TableEntry[] {
   return [
@@ -67,7 +67,7 @@ export function getDefaultArrivalTable(): TableEntry[] {
 }
 
 /**
- * Default service time table (example from reference CSV)
+ * Default service time table
  */
 export function getDefaultServiceTable(): TableEntry[] {
   return [

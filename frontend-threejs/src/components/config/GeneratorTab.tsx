@@ -124,6 +124,28 @@ export function GeneratorTab() {
     setMCGConfig({ a: 48271, m: 2147483647, seed: 1 });
   };
 
+  const middleSquareColumns = [
+    { label: 'N', tip: 'Número de iteración de la secuencia.', className: 'w-12 text-center' },
+    { label: 'Xₙ', tip: 'Valor actual antes de aplicar el método.', className: 'text-right' },
+    { label: 'Izq.', tip: 'Dígitos de la parte izquierda tras elevar al cuadrado.' },
+    {
+      label: 'Centro',
+      tip: 'Bloque central extraído del cuadrado; se usa como siguiente semilla.',
+      className: 'bg-muted/50 text-center',
+    },
+    { label: 'Der.', tip: 'Dígitos de la parte derecha tras elevar al cuadrado.' },
+    { label: 'Xₙ₊₁', tip: 'Siguiente valor entero generado.', className: 'text-right' },
+    { label: 'Rᵢ', tip: 'Valor normalizado en el intervalo [0, 1).', className: 'text-right' },
+  ];
+
+  const congruentialColumns = [
+    { label: 'N', tip: 'Número de iteración de la secuencia.', className: 'w-16 text-center' },
+    { label: 'Xₙ', tip: 'Valor actual antes de aplicar la fórmula.', className: 'text-right' },
+    { label: 'Fórmula', tip: 'Operación aplicada para calcular el siguiente valor.' },
+    { label: 'Xₙ₊₁', tip: 'Siguiente valor entero generado.', className: 'text-right' },
+    { label: 'Rᵢ', tip: 'Valor normalizado en el intervalo [0, 1).', className: 'text-right' },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Generator Config */}
@@ -543,13 +565,18 @@ export function GeneratorTab() {
                 <Table>
                   <TableHeader className="sticky top-0 bg-card z-10 shadow-sm">
                     <TableRow>
-                      <TableHead className="w-12 text-center">N</TableHead>
-                      <TableHead className="text-right">Xₙ</TableHead>
-                      <TableHead>Izq.</TableHead>
-                      <TableHead className="bg-muted/50 text-center">Centro</TableHead>
-                      <TableHead>Der.</TableHead>
-                      <TableHead className="text-right">Xₙ₊₁</TableHead>
-                      <TableHead className="text-right">Rᵢ</TableHead>
+                      {middleSquareColumns.map((col) => (
+                        <TableHead key={col.label} className={col.className}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex cursor-help items-center">{col.label}</span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-[220px]">
+                              <p className="text-xs">{col.tip}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableHead>
+                      ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -577,11 +604,18 @@ export function GeneratorTab() {
                 <Table>
                   <TableHeader className="sticky top-0 bg-card z-10 shadow-sm">
                     <TableRow>
-                      <TableHead className="w-16 text-center">N</TableHead>
-                      <TableHead className="text-right">Xₙ</TableHead>
-                      <TableHead>Fórmula</TableHead>
-                      <TableHead className="text-right">Xₙ₊₁</TableHead>
-                      <TableHead className="text-right">Rᵢ</TableHead>
+                      {congruentialColumns.map((col) => (
+                        <TableHead key={col.label} className={col.className}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex cursor-help items-center">{col.label}</span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-[220px]">
+                              <p className="text-xs">{col.tip}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableHead>
+                      ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>

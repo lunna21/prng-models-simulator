@@ -24,7 +24,7 @@ export function MathFormula({ tex, colors, displayMode = true, className }: Math
     try {
       return katex.renderToString(finalTex, {
         displayMode,
-        throwOnError: false,
+        throwOnError: true,
         strict: false,
       });
     } catch {
@@ -32,8 +32,10 @@ export function MathFormula({ tex, colors, displayMode = true, className }: Math
     }
   }, [tex, colors, displayMode]);
 
+  const Wrapper = displayMode ? 'div' : 'span';
+
   return (
-    <span
+    <Wrapper
       className={className}
       dangerouslySetInnerHTML={{ __html: html }}
     />

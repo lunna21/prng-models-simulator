@@ -21,12 +21,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { lcg, mcg, middleSquare } from '@/lib/generators';
 import type { GeneratorResult } from '@/lib/generators/types';
 import { chiSquareTest, ksTest, pokerTest } from '@/lib/tests';
 import type { TestResult } from '@/lib/tests/types';
 import type { ChiSquareDetails, KSDetails, PokerDetails } from '@/lib/tests/types';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, Maximize2, XCircle } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -92,6 +93,25 @@ export function CompareTab() {
   const [comparison, setComparison] = useState<CompareEntry[] | null>(null);
   const [activeChartTab, setActiveChartTab] = useState<'chi' | 'ks' | 'poker'>('chi');
   const [expandedChart, setExpandedChart] = useState<{ test: 'chi' | 'ks' | 'poker'; generator: string; entry: CompareEntry } | null>(null);
+
+  const comparisonColumns = [
+    {
+      label: 'Prueba',
+      tip: 'Prueba estadística aplicada para evaluar la calidad de la secuencia.',
+      className: 'w-48',
+    },
+  ];
+
+  const riColumns = [
+    { label: 'i', tip: 'Índice de la observación dentro de la secuencia.', className: 'w-16' },
+    { label: 'Ri LCG', tip: 'Valor normalizado generado por el método LCG.', className: 'text-center' },
+    { label: 'Ri MCG', tip: 'Valor normalizado generado por el método MCG.', className: 'text-center' },
+    {
+      label: 'Ri C. Medios',
+      tip: 'Valor normalizado generado por el método de Cuadrados Medios.',
+      className: 'text-center',
+    },
+  ];
 
   const handleCompare = () => {
     try {
@@ -163,6 +183,10 @@ export function CompareTab() {
       </Badge>
     );
 
+  const openExpandedChart = (test: 'chi' | 'ks' | 'poker', entry: CompareEntry) => {
+    setExpandedChart({ test, generator: entry.name, entry });
+  };
+
   const renderChiChart = (entry: CompareEntry, expanded: boolean = false) => {
     const details = entry.chi.details as ChiSquareDetails;
     const chartData = details.observed.map((o, i) => ({
@@ -172,11 +196,11 @@ export function CompareTab() {
     }));
 
     return (
-      <ResponsiveContainer width="100%" height={expanded ? 300 : 120}>
+      <ResponsiveContainer width="100%" height={expanded ? 560 : 120}>
         <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="bin" tick={{ fontSize: expanded ? 10 : 7 }} />
-          <YAxis tick={{ fontSize: expanded ? 10 : 7 }} />
+          <XAxis dataKey="bin" tick={{ fontSize: expanded ? 12 : 7 }} />
+          <YAxis tick={{ fontSize: expanded ? 12 : 7 }} />
           <RechartsTooltip />
           <Bar dataKey="Observado" fill="var(--color-chart-1)" />
           <Bar dataKey="Esperado" fill="var(--color-chart-2)" />
@@ -195,11 +219,11 @@ export function CompareTab() {
     }));
 
     return (
-      <ResponsiveContainer width="100%" height={expanded ? 300 : 120}>
+      <ResponsiveContainer width="100%" height={expanded ? 560 : 120}>
         <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="i" tick={{ fontSize: expanded ? 10 : 7 }} />
-          <YAxis domain={[0, 1]} tick={{ fontSize: expanded ? 10 : 7 }} />
+          <XAxis dataKey="i" tick={{ fontSize: expanded ? 12 : 7 }} />
+          <YAxis domain={[0, 1]} tick={{ fontSize: expanded ? 12 : 7 }} />
           <RechartsTooltip />
           <Line type="stepAfter" dataKey="Empirica" stroke="var(--color-chart-1)" dot={false} strokeWidth={1.5} />
           <Line type="monotone" dataKey="Teorica" stroke="var(--color-chart-2)" dot={false} strokeWidth={1.5} />
@@ -222,11 +246,11 @@ export function CompareTab() {
       }));
 
     return (
-      <ResponsiveContainer width="100%" height={expanded ? 300 : 120}>
-        <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: expanded ? 40 : 5 }}>
+      <ResponsiveContainer width="100%" height={expanded ? 560 : 120}>
+        <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: expanded ? 72 : 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" tick={{ fontSize: expanded ? 10 : 6 }} angle={-30} textAnchor="end" height={expanded ? 50 : 40} />
-          <YAxis tick={{ fontSize: expanded ? 10 : 7 }} />
+          <XAxis dataKey="name" tick={{ fontSize: expanded ? 12 : 6 }} angle={-30} textAnchor="end" height={expanded ? 84 : 40} />
+          <YAxis tick={{ fontSize: expanded ? 12 : 7 }} />
           <RechartsTooltip />
           <Bar dataKey="Observado" fill="var(--color-chart-1)" />
           <Bar dataKey="Esperado" fill="var(--color-chart-2)" />
@@ -368,10 +392,28 @@ export function CompareTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-48">Prueba</TableHead>
+                    {comparisonColumns.map((col) => (
+                      <TableHead key={col.label} className={col.className}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex cursor-help items-center">{col.label}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[220px]">
+                            <p className="text-xs">{col.tip}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableHead>
+                    ))}
                     {comparison.map((e) => (
                       <TableHead key={e.name} className="text-center min-w-[180px]">
-                        {e.name}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex cursor-help items-center">{e.name}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[220px]">
+                            <p className="text-xs">Resultados del generador {e.name} para cada prueba estadística.</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </TableHead>
                     ))}
                   </TableRow>
@@ -459,10 +501,18 @@ export function CompareTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-16">i</TableHead>
-                    <TableHead className="text-center">Ri LCG</TableHead>
-                    <TableHead className="text-center">Ri MCG</TableHead>
-                    <TableHead className="text-center">Ri C. Medios</TableHead>
+                    {riColumns.map((col) => (
+                      <TableHead key={col.label} className={col.className}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex cursor-help items-center">{col.label}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[220px]">
+                            <p className="text-xs">{col.tip}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableHead>
+                    ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -515,11 +565,23 @@ export function CompareTab() {
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-sm">{e.name}</CardTitle>
-                          <PassBadge pass={e.chi.pass} />
+                          <div className="flex items-center gap-1">
+                            <PassBadge pass={e.chi.pass} />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => openExpandedChart('chi', e)}
+                              aria-label={`Expandir grafica Chi-Cuadrada de ${e.name}`}
+                              title="Expandir grafica"
+                            >
+                              <Maximize2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <div className="cursor-pointer" onClick={() => setExpandedChart({ test: 'chi', generator: e.name, entry: e })}>
+                        <div className="cursor-pointer" onClick={() => openExpandedChart('chi', e)}>
                           {renderChiChart(e, false)}
                         </div>
                       </CardContent>
@@ -535,11 +597,23 @@ export function CompareTab() {
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-sm">{e.name}</CardTitle>
-                          <PassBadge pass={e.ks.pass} />
+                          <div className="flex items-center gap-1">
+                            <PassBadge pass={e.ks.pass} />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => openExpandedChart('ks', e)}
+                              aria-label={`Expandir grafica KS de ${e.name}`}
+                              title="Expandir grafica"
+                            >
+                              <Maximize2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <div className="cursor-pointer" onClick={() => setExpandedChart({ test: 'ks', generator: e.name, entry: e })}>
+                        <div className="cursor-pointer" onClick={() => openExpandedChart('ks', e)}>
                           {renderKSChart(e, false)}
                         </div>
                       </CardContent>
@@ -555,12 +629,26 @@ export function CompareTab() {
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-sm">{e.name}</CardTitle>
-                          {e.poker ? <PassBadge pass={e.poker.pass} /> : <span className="text-xs text-muted-foreground">N/A</span>}
+                          <div className="flex items-center gap-1">
+                            {e.poker ? <PassBadge pass={e.poker.pass} /> : <span className="text-xs text-muted-foreground">N/A</span>}
+                            {e.poker ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => openExpandedChart('poker', e)}
+                                aria-label={`Expandir grafica Poker de ${e.name}`}
+                                title="Expandir grafica"
+                              >
+                                <Maximize2 className="h-3.5 w-3.5" />
+                              </Button>
+                            ) : null}
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent className={!e.poker ? 'flex items-center justify-center' : ''}>
                         {e.poker ? (
-                          <div className="cursor-pointer" onClick={() => setExpandedChart({ test: 'poker', generator: e.name, entry: e })}>
+                          <div className="cursor-pointer" onClick={() => openExpandedChart('poker', e)}>
                             {renderPokerChart(e, false)}
                           </div>
                         ) : (
@@ -574,13 +662,13 @@ export function CompareTab() {
 
               {expandedChart && (
                 <Dialog open={true} onOpenChange={(open) => !open && setExpandedChart(null)}>
-                  <DialogContent className="max-w-4xl max-h-[90vh]">
-                    <DialogHeader>
+                  <DialogContent className="w-[95vw] max-w-[95vw] h-[92vh] p-0 gap-0 flex flex-col">
+                    <DialogHeader className="px-6 py-4 border-b border-border">
                       <DialogTitle>
                         {expandedChart.generator} - {expandedChart.test === 'chi' ? 'Chi-Cuadrada' : expandedChart.test === 'ks' ? 'Kolmogorov-Smirnov' : 'Poker'}
                       </DialogTitle>
                     </DialogHeader>
-                    <div className="overflow-auto">
+                    <div className="flex-1 min-h-0 overflow-auto p-6">
                       {expandedChart.test === 'chi' && renderChiChart(expandedChart.entry, true)}
                       {expandedChart.test === 'ks' && renderKSChart(expandedChart.entry, true)}
                       {expandedChart.test === 'poker' && renderPokerChart(expandedChart.entry, true)}
