@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useStore } from '@/store/store';
+import { useGuidedTour } from '@/tour/useGuidedTour';
+import { ChevronDown, ChevronRight, PlayCircle } from 'lucide-react';
 import { MathFormula } from './MathFormula';
 
 interface FormulaEntry {
@@ -11,13 +14,24 @@ interface FormulaEntry {
   description?: string;
 }
 
-function FormulaBlock({ title, formulas, index }: { title: string; formulas: FormulaEntry[]; index: number }) {
+function FormulaBlock({
+  title,
+  formulas,
+  index,
+  tourKey,
+}: {
+  title: string;
+  formulas: FormulaEntry[];
+  index: number;
+  tourKey?: string;
+}) {
   const [expanded, setExpanded] = useState(true);
 
   return (
     <Card
       className="formula-card"
       style={{ animationDelay: `${index * 120}ms` }}
+      data-tour={tourKey}
     >
       <CardHeader
         className="cursor-pointer select-none"
@@ -63,6 +77,7 @@ const COLORS = {
 const FORMULA_SECTIONS = [
   {
     title: 'Generadores de Números Pseudoaleatorios',
+    tourKey: 'eq-generators',
     formulas: [
       {
         label: 'Congruencial Lineal (LCG)',
@@ -92,6 +107,7 @@ const FORMULA_SECTIONS = [
   },
   {
     title: 'Prueba Chi-Cuadrada (χ²)',
+    tourKey: 'eq-chi-square',
     formulas: [
       {
         label: 'Estadístico',
@@ -109,6 +125,7 @@ const FORMULA_SECTIONS = [
   },
   {
     title: 'Prueba Kolmogorov-Smirnov',
+    tourKey: 'eq-ks',
     formulas: [
       {
         label: 'Estadístico D',
@@ -135,6 +152,7 @@ const FORMULA_SECTIONS = [
   },
   {
     title: 'Prueba de Póker',
+    tourKey: 'eq-poker',
     formulas: [
       {
         label: 'Procedimiento',
@@ -150,6 +168,7 @@ const FORMULA_SECTIONS = [
   },
   {
     title: 'Simulación de Colas M/M/c',
+    tourKey: 'eq-queue-mmc',
     formulas: [
       {
         label: 'Transformada inversa exponencial',
@@ -179,6 +198,7 @@ const FORMULA_SECTIONS = [
   },
   {
     title: 'Normalización',
+    tourKey: 'eq-normalization',
     formulas: [
       {
         label: 'Número aleatorio normalizado',
@@ -191,9 +211,43 @@ const FORMULA_SECTIONS = [
 ];
 
 export function EquationsTab() {
+  const configTab = useStore((s) => s.configTab);
+  const autoStartedRef = useRef(false);
+  const { startEquationsTour, hasSeenEquationsTour } = useGuidedTour();
+
+  useEffect(() => {
+    if (configTab !== 'equations') {
+      autoStartedRef.current = false;
+      return;
+    }
+
+    if (autoStartedRef.current || hasSeenEquationsTour()) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      startEquationsTour(true);
+      autoStartedRef.current = true;
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [configTab, hasSeenEquationsTour, startEquationsTour]);
+
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold">Fórmulas y Ecuaciones</h3>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-lg font-semibold">Fórmulas y Ecuaciones</h3>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => startEquationsTour(true)}
+          data-tour="equations-tour-start"
+        >
+          <PlayCircle className="h-4 w-4 mr-2" />
+          Iniciar tour de ecuaciones
+        </Button>
+      </div>
       <p className="text-sm text-muted-foreground">
         Referencia completa de las fórmulas matemáticas utilizadas en los generadores,
         pruebas estadísticas y simulación de colas.
@@ -208,6 +262,7 @@ export function EquationsTab() {
             title={section.title}
             formulas={section.formulas}
             index={i}
+            tourKey={section.tourKey}
           />
         ))}
       </div>

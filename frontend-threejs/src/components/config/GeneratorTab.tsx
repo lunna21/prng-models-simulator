@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -20,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, ReferenceLine } from 'recharts';
 import type { GeneratorType, MiddleSquareStepDetail, DegenerationInfo } from '@/lib/generators/types';
 import type { ChiSquareDetails, KSDetails, PokerDetails } from '@/lib/tests/types';
-import { CheckCircle2, XCircle, AlertTriangle, Sparkles, Info, ChevronDown, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, Sparkles, Info, ChevronDown, ChevronRight, Maximize2 } from 'lucide-react';
 import { EducationalHelp } from './EducationalHelp';
 import { MathFormula } from './MathFormula';
 import { validateLCG, validateMCG } from '@/lib/generators/validation';
@@ -40,6 +41,7 @@ function LabeledInput({
   min,
   max,
   placeholder,
+  dataTour,
 }: {
   label: string;
   tooltip: string;
@@ -49,6 +51,7 @@ function LabeledInput({
   min?: number;
   max?: number;
   placeholder?: string;
+  dataTour?: string;
 }) {
   return (
     <div className="space-y-1.5">
@@ -69,6 +72,7 @@ function LabeledInput({
         min={min}
         max={max}
         placeholder={placeholder}
+        data-tour={dataTour}
         className={invalid ? 'border-destructive focus-visible:ring-destructive' : undefined}
         aria-invalid={invalid}
       />
@@ -93,8 +97,10 @@ export function GeneratorTab() {
   const pokerResult = useStore((s) => s.pokerResult);
   const testError = useStore((s) => s.testError);
 
-  const [sequenceChartExpanded, setSequenceChartExpanded] = useState(false);
+  const [isSequenceDialogOpen, setIsSequenceDialogOpen] = useState(false);
   const [expandedTest, setExpandedTest] = useState<string | null>(null);
+  const [showLCGValidationDetails, setShowLCGValidationDetails] = useState(false);
+  const [showMCGValidationDetails, setShowMCGValidationDetails] = useState(false);
 
   const lcgValidation = useMemo(
     () => validateLCG(lcgConfig.a, lcgConfig.c, lcgConfig.m),
@@ -108,13 +114,28 @@ export function GeneratorTab() {
 
   const periodDetection = useMemo(() => {
     if (!generatorResult) return null;
-    return detectPeriod(generatorResult.normalized);
+    return detectPeriod(generatorResult.sequence);
   }, [generatorResult]);
 
   const repetition = useMemo(() => {
     if (!generatorResult) return null;
-    return findRepetition(generatorResult.normalized);
+    return findRepetition(generatorResult.sequence);
   }, [generatorResult]);
+
+  const sequenceCycleLines = useMemo(() => {
+    if (!periodDetection?.hasCycle || periodDetection.period == null || periodDetection.cycleStart == null) {
+      return [] as number[];
+    }
+
+    const visibleLimit = Math.min(generatorResult?.normalized.length ?? 0, 500);
+    const lines: number[] = [];
+
+    for (let idx = periodDetection.cycleStart; idx < visibleLimit; idx += periodDetection.period) {
+      lines.push(idx + 1);
+    }
+
+    return lines;
+  }, [periodDetection, generatorResult]);
 
   const suggestLCGParams = () => {
     setLCGConfig({ a: 1664525, c: 1013904223, m: 4294967296, seed: 1 });
@@ -149,17 +170,30 @@ export function GeneratorTab() {
   return (
     <div className="space-y-6">
       {/* Generator Config */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center justify-between">
               <span>Parámetros del Generador</span>
-              <EducationalHelp generatorType={generatorType} />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => setIsSequenceDialogOpen(true)}
+                  disabled={!generatorResult}
+                  title={generatorResult ? 'Ver secuencia generada' : 'Genera una secuencia para visualizarla'}
+                >
+                  <Maximize2 className="h-3.5 w-3.5 mr-1" /> Ver secuencia
+                </Button>
+                <EducationalHelp generatorType={generatorType} />
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs flex items-center gap-1">
+              <Label className="text-xs flex items-center gap-1" data-tour="generator-type-select">
                 Tipo de Generador
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -170,13 +204,13 @@ export function GeneratorTab() {
                   </TooltipContent>
                 </Tooltip>
               </Label>
-              <Select
-                value={generatorType}
-                onValueChange={(v) => setGeneratorType(v as GeneratorType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <Select
+                  value={generatorType}
+                  onValueChange={(v) => setGeneratorType(v as GeneratorType)}
+                >
+                  <SelectTrigger data-tour="generator-type-select">
+                    <SelectValue />
+                  </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="lcg">Congruencial Lineal (LCG)</SelectItem>
                   <SelectItem value="mcg">Congruencial Multiplicativo (MCG)</SelectItem>
@@ -195,6 +229,7 @@ export function GeneratorTab() {
                     value={lcgConfig.seed}
                     onChange={(v) => setLCGConfig({ seed: v })}
                     placeholder="ej. 7"
+                    dataTour="lcg-seed"
                   />
                   <LabeledInput
                     label="Multiplicador (a)"
@@ -203,6 +238,7 @@ export function GeneratorTab() {
                     onChange={(v) => setLCGConfig({ a: v })}
                     invalid={lcgConfig.a <= 0}
                     placeholder="ej. 1664525"
+                    dataTour="lcg-a"
                   />
                   <LabeledInput
                     label="Incremento (c)"
@@ -211,6 +247,7 @@ export function GeneratorTab() {
                     onChange={(v) => setLCGConfig({ c: v })}
                     invalid={lcgConfig.c < 0}
                     placeholder="ej. 1013904223"
+                    dataTour="lcg-c"
                   />
                   <LabeledInput
                     label="Módulo (m)"
@@ -219,6 +256,7 @@ export function GeneratorTab() {
                     onChange={(v) => setLCGConfig({ m: v || 1 })}
                     invalid={lcgConfig.m <= 0}
                     placeholder="ej. 2³²"
+                    dataTour="lcg-m"
                   />
                 </div>
                 <LabeledInput
@@ -229,46 +267,70 @@ export function GeneratorTab() {
                   min={1}
                   max={10000}
                   placeholder="ej. 100"
+                  dataTour="lcg-count"
                 />
 
                 {/* LCG Validation */}
-                <div className="rounded-lg border p-3 space-y-2">
-                  <div className="flex items-center justify-between">
+                <div className="rounded-lg border p-3 space-y-2.5 bg-muted/15">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium">Período máximo (Hull-Dobell)</span>
-                    {lcgValidation.hasFullPeriod ? (
-                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">
-                        <CheckCircle2 className="h-3 w-3 mr-1" /> Garantizado
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="text-xs">
-                        <AlertTriangle className="h-3 w-3 mr-1" /> No garantizado
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="space-y-1.5">
-                    {lcgValidation.checks.map((check, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs">
-                        {check.passed ? (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                    <div className="flex items-center gap-2">
+                      {lcgValidation.hasFullPeriod ? (
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">
+                          <CheckCircle2 className="h-3 w-3 mr-1" /> Garantizado
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">
+                          <AlertTriangle className="h-3 w-3 mr-1" /> No garantizado
+                        </Badge>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-3 text-xs"
+                        onClick={() => setShowLCGValidationDetails((prev) => !prev)}
+                      >
+                        {showLCGValidationDetails ? (
+                          <ChevronDown className="h-3.5 w-3.5 mr-1" />
                         ) : (
-                          <XCircle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
+                          <ChevronRight className="h-3.5 w-3.5 mr-1" />
                         )}
-                        <span className="text-muted-foreground">{check.message}</span>
+                        {showLCGValidationDetails ? 'Ocultar' : 'Ver detalle'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {showLCGValidationDetails && (
+                    <div className="space-y-2.5 rounded-md border border-border/70 bg-background/70 p-2.5">
+                      <div className="space-y-1.5">
+                        {lcgValidation.checks.map((check, i) => (
+                          <div key={i} className="flex items-start gap-2 text-xs">
+                            {check.passed ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                            ) : (
+                              <XCircle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
+                            )}
+                            <span className="text-muted-foreground leading-relaxed">{check.message}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Período: <span className="font-mono">{lcgValidation.currentPeriod}</span>
-                  </div>
-                  {!lcgValidation.hasFullPeriod && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-xs h-7"
-                      onClick={suggestLCGParams}
-                    >
-                      <Sparkles className="h-3 w-3 mr-1" /> Sugerir parámetros óptimos
-                    </Button>
+
+                      <div className="rounded-md border border-border/60 bg-muted/25 px-2.5 py-1.5 text-xs text-muted-foreground">
+                        Período detectado: <span className="font-mono text-foreground">{lcgValidation.currentPeriod}</span>
+                      </div>
+
+                      {!lcgValidation.hasFullPeriod && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-xs h-7"
+                          onClick={suggestLCGParams}
+                        >
+                          <Sparkles className="h-3 w-3 mr-1" /> Sugerir parámetros óptimos
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               </>
@@ -285,6 +347,7 @@ export function GeneratorTab() {
                     onChange={(v) => setMCGConfig({ seed: v })}
                     invalid={mcgConfig.seed === 0}
                     placeholder="ej. 7"
+                    dataTour="mcg-seed"
                   />
                   <LabeledInput
                     label="Multiplicador (a)"
@@ -293,6 +356,7 @@ export function GeneratorTab() {
                     onChange={(v) => setMCGConfig({ a: v })}
                     invalid={mcgConfig.a <= 0}
                     placeholder="ej. 48271"
+                    dataTour="mcg-a"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -303,6 +367,7 @@ export function GeneratorTab() {
                     onChange={(v) => setMCGConfig({ m: v || 1 })}
                     invalid={mcgConfig.m <= 0}
                     placeholder="ej. 2³¹−1"
+                    dataTour="mcg-m"
                   />
                   <LabeledInput
                     label="Cantidad (N)"
@@ -312,47 +377,71 @@ export function GeneratorTab() {
                     min={1}
                     max={10000}
                     placeholder="ej. 100"
+                    dataTour="mcg-count"
                   />
                 </div>
 
                 {/* MCG Validation */}
-                <div className="rounded-lg border p-3 space-y-2">
-                  <div className="flex items-center justify-between">
+                <div className="rounded-lg border p-3 space-y-2.5 bg-muted/15">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium">Período máximo (MCG)</span>
-                    {mcgValidation.hasFullPeriod ? (
-                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">
-                        <CheckCircle2 className="h-3 w-3 mr-1" /> Garantizado
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="text-xs">
-                        <AlertTriangle className="h-3 w-3 mr-1" /> No garantizado
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="space-y-1.5">
-                    {mcgValidation.checks.map((check, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs">
-                        {check.passed ? (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                    <div className="flex items-center gap-2">
+                      {mcgValidation.hasFullPeriod ? (
+                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">
+                          <CheckCircle2 className="h-3 w-3 mr-1" /> Garantizado
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">
+                          <AlertTriangle className="h-3 w-3 mr-1" /> No garantizado
+                        </Badge>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-3 text-xs"
+                        onClick={() => setShowMCGValidationDetails((prev) => !prev)}
+                      >
+                        {showMCGValidationDetails ? (
+                          <ChevronDown className="h-3.5 w-3.5 mr-1" />
                         ) : (
-                          <XCircle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
+                          <ChevronRight className="h-3.5 w-3.5 mr-1" />
                         )}
-                        <span className="text-muted-foreground">{check.message}</span>
+                        {showMCGValidationDetails ? 'Ocultar' : 'Ver detalle'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {showMCGValidationDetails && (
+                    <div className="space-y-2.5 rounded-md border border-border/70 bg-background/70 p-2.5">
+                      <div className="space-y-1.5">
+                        {mcgValidation.checks.map((check, i) => (
+                          <div key={i} className="flex items-start gap-2 text-xs">
+                            {check.passed ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                            ) : (
+                              <XCircle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
+                            )}
+                            <span className="text-muted-foreground leading-relaxed">{check.message}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Período: <span className="font-mono">{mcgValidation.currentPeriod}</span>
-                  </div>
-                  {!mcgValidation.hasFullPeriod && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-xs h-7"
-                      onClick={suggestMCGParams}
-                    >
-                      <Sparkles className="h-3 w-3 mr-1" /> Sugerir parámetros óptimos
-                    </Button>
+
+                      <div className="rounded-md border border-border/60 bg-muted/25 px-2.5 py-1.5 text-xs text-muted-foreground">
+                        Período detectado: <span className="font-mono text-foreground">{mcgValidation.currentPeriod}</span>
+                      </div>
+
+                      {!mcgValidation.hasFullPeriod && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-xs h-7"
+                          onClick={suggestMCGParams}
+                        >
+                          <Sparkles className="h-3 w-3 mr-1" /> Sugerir parámetros óptimos
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               </>
@@ -368,6 +457,7 @@ export function GeneratorTab() {
                   onChange={(v) => setMSConfig({ seed: v })}
                   invalid={msConfig.seed >= Math.pow(10, msConfig.d)}
                   placeholder="ej. 1234"
+                  dataTour="ms-seed"
                 />
                 <LabeledInput
                   label="Dígitos (d)"
@@ -380,6 +470,7 @@ export function GeneratorTab() {
                   }}
                   invalid={msConfig.d < 4 || msConfig.d % 2 !== 0}
                   placeholder="ej. 4"
+                  dataTour="ms-d"
                 />
                 <div className="col-span-2">
                   <LabeledInput
@@ -390,19 +481,22 @@ export function GeneratorTab() {
                     min={1}
                     max={10000}
                     placeholder="ej. 100"
+                    dataTour="ms-iterations"
                   />
                 </div>
               </div>
             )}
 
-            <div className="flex gap-2">
-              <Button onClick={generate} className="flex-1">
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button onClick={generate} className="min-w-[170px] px-8" data-tour="generator-generate">
                 Generar
               </Button>
               <Button
                 variant="secondary"
                 onClick={runTests}
                 disabled={!generatorResult}
+                className="min-w-[170px] px-8"
+                data-tour="generator-run-tests"
               >
                 Ejecutar Pruebas
               </Button>
@@ -422,134 +516,93 @@ export function GeneratorTab() {
             )}
           </CardContent>
         </Card>
-
-        {/* Sequence Chart */}
         {generatorResult && (
-          <Card>
-            <CardHeader
-              className="cursor-pointer select-none pb-2"
-              onClick={() => setSequenceChartExpanded(!sequenceChartExpanded)}
-            >
-              <CardTitle className="text-base flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  {sequenceChartExpanded ? (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  )}
-                  Secuencia Generada ({fmt(generatorResult.normalized.length)} valores)
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSequenceChartExpanded(!sequenceChartExpanded);
-                  }}
-                >
-                  {sequenceChartExpanded ? (
-                    <Minimize2 className="h-4 w-4" />
-                  ) : (
-                    <Maximize2 className="h-4 w-4" />
-                  )}
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={sequenceChartExpanded ? 350 : 180}>
-                <LineChart
-                  data={generatorResult.normalized.slice(0, 500).map((v, i) => ({
-                    i: i + 1,
-                    r: v,
-                  }))}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="i" tick={{ fontSize: 10 }} />
-                  <YAxis domain={[0, 1]} tick={{ fontSize: 10 }} />
-                  <RechartsTooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="r"
-                    stroke="var(--color-primary)"
-                    dot={sequenceChartExpanded}
-                    strokeWidth={1}
-                  />
-                  {generatorResult.degenerated && (
-                    <ReferenceLine
-                      x={(generatorResult.degenerated as DegenerationInfo).iteration}
-                      stroke="var(--color-destructive)"
-                      strokeDasharray="5 5"
-                      label={{ value: 'Degeneración', position: 'top', fontSize: 10, fill: 'var(--color-destructive)' }}
-                    />
-                  )}
-                  {periodDetection?.hasCycle && periodDetection.period && (
-                    <>
+          <Dialog open={isSequenceDialogOpen} onOpenChange={setIsSequenceDialogOpen}>
+            <DialogContent className="w-[95vw] max-w-[95vw] h-[92vh] p-0 gap-0 flex flex-col">
+              <DialogHeader className="px-6 py-4 border-b border-border">
+                <DialogTitle>Secuencia Generada ({fmt(generatorResult.normalized.length)} valores)</DialogTitle>
+              </DialogHeader>
+              <div className="flex-1 min-h-0 overflow-auto p-6 space-y-4">
+                <ResponsiveContainer width="100%" height={520}>
+                  <LineChart
+                    data={generatorResult.normalized.slice(0, 500).map((v, i) => ({
+                      i: i + 1,
+                      r: v,
+                    }))}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="i" tick={{ fontSize: 11 }} />
+                    <YAxis domain={[0, 1]} tick={{ fontSize: 11 }} />
+                    <RechartsTooltip />
+                    <Line type="monotone" dataKey="r" stroke="var(--color-primary)" dot strokeWidth={1.25} />
+                    {generatorResult.degenerated && (
                       <ReferenceLine
-                        x={periodDetection.cycleStart! + 1}
-                        stroke="var(--color-chart-3)"
+                        x={(generatorResult.degenerated as DegenerationInfo).iteration}
+                        stroke="var(--color-destructive)"
                         strokeDasharray="5 5"
-                        label={{ value: 'Inicio ciclo', position: 'top', fontSize: 9, fill: 'var(--color-chart-3)' }}
+                        label={{ value: 'Degeneración', position: 'top', fontSize: 10, fill: 'var(--color-destructive)' }}
                       />
+                    )}
+                    {sequenceCycleLines.map((x, idx) => (
                       <ReferenceLine
-                        x={periodDetection.cycleStart! + periodDetection.period}
-                        stroke="var(--color-chart-4)"
+                        key={`cycle-line-${x}`}
+                        x={x}
+                        stroke={idx === 0 ? 'var(--color-chart-3)' : 'var(--color-chart-4)'}
                         strokeDasharray="5 5"
-                        label={{ value: `Período=${periodDetection.period}`, position: 'top', fontSize: 9, fill: 'var(--color-chart-4)' }}
+                        label={
+                          idx === 0
+                            ? { value: 'Inicio ciclo', position: 'top', fontSize: 10, fill: 'var(--color-chart-3)' }
+                            : idx === 1 && periodDetection?.period
+                              ? { value: `Período=${periodDetection.period}`, position: 'top', fontSize: 10, fill: 'var(--color-chart-4)' }
+                              : undefined
+                        }
                       />
-                    </>
-                  )}
-                </LineChart>
-              </ResponsiveContainer>
-              
-              <div className="mt-3 space-y-2">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Cada punto representa el valor normalizado <span className="font-mono">Rᵢ</span> en el intervalo [0, 1). 
-                  Una secuencia ideal debe mostrar los valores distribuidos uniformemente sin patrones visibles.
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Cada punto representa el valor normalizado <span className="font-mono">Rᵢ</span> en el intervalo [0, 1). Una secuencia ideal debe mostrar los valores distribuidos uniformemente sin patrones visibles.
                 </p>
-                {sequenceChartExpanded && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                    <div className="bg-muted/50 rounded p-2">
-                      <span className="text-muted-foreground">Mín</span>
-                      <p className="font-mono font-semibold">
-                        {Math.min(...generatorResult.normalized).toFixed(6)}
-                      </p>
-                    </div>
-                    <div className="bg-muted/50 rounded p-2">
-                      <span className="text-muted-foreground">Máx</span>
-                      <p className="font-mono font-semibold">
-                        {Math.max(...generatorResult.normalized).toFixed(6)}
-                      </p>
-                    </div>
-                    <div className="bg-muted/50 rounded p-2">
-                      <span className="text-muted-foreground">Media</span>
-                      <p className="font-mono font-semibold">
-                        {(generatorResult.normalized.reduce((a, b) => a + b, 0) / generatorResult.normalized.length).toFixed(6)}
-                      </p>
-                    </div>
-                    <div className="bg-muted/50 rounded p-2">
-                      <span className="text-muted-foreground">Valores</span>
-                      <p className="font-mono font-semibold">{fmt(generatorResult.normalized.length)}</p>
-                    </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                  <div className="bg-muted/50 rounded p-2">
+                    <span className="text-muted-foreground">Mín</span>
+                    <p className="font-mono font-semibold">{Math.min(...generatorResult.normalized).toFixed(6)}</p>
                   </div>
-                )}
-                {periodDetection?.hasCycle && periodDetection.period && (
+                  <div className="bg-muted/50 rounded p-2">
+                    <span className="text-muted-foreground">Máx</span>
+                    <p className="font-mono font-semibold">{Math.max(...generatorResult.normalized).toFixed(6)}</p>
+                  </div>
+                  <div className="bg-muted/50 rounded p-2">
+                    <span className="text-muted-foreground">Media</span>
+                    <p className="font-mono font-semibold">
+                      {(generatorResult.normalized.reduce((a, b) => a + b, 0) / generatorResult.normalized.length).toFixed(6)}
+                    </p>
+                  </div>
+                  <div className="bg-muted/50 rounded p-2">
+                    <span className="text-muted-foreground">Valores</span>
+                    <p className="font-mono font-semibold">{fmt(generatorResult.normalized.length)}</p>
+                  </div>
+                </div>
+
+                {(periodDetection?.hasCycle && periodDetection.period) || (repetition && repetition.index > 0 && !periodDetection?.hasCycle) ? (
                   <div className="flex items-center gap-2 text-xs">
-                    <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950 border-amber-300 dark:border-amber-700">
-                      Período detectado: {periodDetection.period}
-                    </Badge>
+                    {periodDetection?.hasCycle && periodDetection.period && (
+                      <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950 border-amber-300 dark:border-amber-700">
+                        Período detectado: {periodDetection.period}
+                      </Badge>
+                    )}
+                    {repetition && repetition.index > 0 && !periodDetection?.hasCycle && (
+                      <Badge variant="outline" className="bg-orange-50 dark:bg-orange-950 border-orange-300 dark:border-orange-700">
+                        Repetición en iteración {repetition.index + 1}
+                      </Badge>
+                    )}
                   </div>
-                )}
-                {repetition && repetition.index > 0 && !periodDetection?.hasCycle && (
-                  <div className="flex items-center gap-2 text-xs">
-                    <Badge variant="outline" className="bg-orange-50 dark:bg-orange-950 border-orange-300 dark:border-orange-700">
-                      Repetición en iteración {repetition.index + 1}
-                    </Badge>
-                  </div>
-                )}
+                ) : null}
               </div>
-            </CardContent>
-          </Card>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
 

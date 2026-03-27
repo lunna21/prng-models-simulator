@@ -9,27 +9,37 @@ export function detectPeriod(values: number[]): PeriodDetectionResult {
     return { period: null, cycleStart: null, hasCycle: false };
   }
 
-  const n = values.length;
-  const maxPeriod = Math.min(n, 10000);
+  const firstSeenIndex = new Map<number, number>();
 
-  for (let period = 1; period <= maxPeriod; period++) {
-    let match = true;
-    const checkLength = Math.min(period, n - period);
-    
-    for (let i = 0; i < checkLength; i++) {
-      if (Math.abs(values[i] - values[i + period]) > 0.0001) {
-        match = false;
+  for (let i = 0; i < values.length; i++) {
+    const current = values[i];
+    const start = firstSeenIndex.get(current);
+
+    if (start === undefined) {
+      firstSeenIndex.set(current, i);
+      continue;
+    }
+
+    const period = i - start;
+    if (period <= 0) continue;
+
+    let isConsistentCycle = true;
+    for (let j = start; j + period < values.length; j++) {
+      if (values[j] !== values[j + period]) {
+        isConsistentCycle = false;
         break;
       }
     }
 
-    if (match && checkLength > 0) {
+    if (isConsistentCycle) {
       return {
         period,
-        cycleStart: 0,
+        cycleStart: start,
         hasCycle: true,
       };
     }
+
+    firstSeenIndex.set(current, i);
   }
 
   return { period: null, cycleStart: null, hasCycle: false };
@@ -37,14 +47,14 @@ export function detectPeriod(values: number[]): PeriodDetectionResult {
 
 export function findRepetition(values: number[]): { index: number; value: number } | null {
   const seen = new Map<number, number>();
-  
+
   for (let i = 0; i < values.length; i++) {
-    const rounded = Math.round(values[i] * 1000000);
-    if (seen.has(rounded)) {
-      return { index: seen.get(rounded)!, value: values[i] };
+    const value = values[i];
+    if (seen.has(value)) {
+      return { index: i, value };
     }
-    seen.set(rounded, i);
+    seen.set(value, i);
   }
-  
+
   return null;
 }
