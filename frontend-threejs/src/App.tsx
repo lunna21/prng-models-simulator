@@ -3,7 +3,6 @@ import { BankScene } from '@/components/scene/BankScene';
 import { ControlsPanel } from '@/components/controls/ControlsPanel';
 import { ConfigDialog } from '@/components/config/ConfigDialog';
 import { Button } from '@/components/ui/button';
-import { Toaster } from 'sonner';
 import { Sun, Moon } from 'lucide-react';
 
 function useTheme() {
@@ -61,8 +60,6 @@ function App() {
       {/* Configuration Dialog */}
       <ConfigDialog />
 
-      {/* Toast notifications */}
-      <Toaster position="top-right" />
     </div>
   );
 }

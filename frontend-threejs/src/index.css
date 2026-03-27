@@ -172,3 +172,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .config-dialog {
+    transition-property: width, max-width, height;
+    transition-duration: 260ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: width, max-width, height;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .config-dialog {
+    transition-duration: 1ms;
+  }
+}

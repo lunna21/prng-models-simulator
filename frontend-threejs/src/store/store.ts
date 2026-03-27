@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { GeneratorType, GeneratorResult } from '@/lib/generators/types';
 import type { TestResult } from '@/lib/tests/types';
 import type {
@@ -59,6 +60,7 @@ interface AppState {
   // UI
   configOpen: boolean;
   configTab: string;
+  dialogViewMode: 'normal' | 'expanded';
 
   // Actions
   setGeneratorType: (type: GeneratorType) => void;
@@ -79,12 +81,16 @@ interface AppState {
 
   setConfigOpen: (open: boolean) => void;
   setConfigTab: (tab: string) => void;
+  setDialogViewMode: (mode: 'normal' | 'expanded') => void;
+  toggleDialogViewMode: () => void;
 
   // Convenience
   getCurrentSnapshot: () => SimulationSnapshot | null;
 }
 
-export const useStore = create<AppState>((set, get) => ({
+export const useStore = create<AppState>()(
+  persist(
+    (set, get) => ({
   // ── Defaults ──
   generatorType: 'lcg',
   lcgConfig: { seed: 7, a: 5, c: 3, m: 16, count: 100 },
@@ -115,6 +121,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   configOpen: false,
   configTab: 'generator',
+  dialogViewMode: 'normal',
 
   // ── Generator Actions ──
   setGeneratorType: (type) => set({ generatorType: type, generatorResult: null, generatorError: null }),
@@ -249,10 +256,24 @@ export const useStore = create<AppState>((set, get) => ({
 
   setConfigOpen: (open) => set({ configOpen: open }),
   setConfigTab: (tab) => set({ configTab: tab }),
+  setDialogViewMode: (mode) => set({ dialogViewMode: mode }),
+  toggleDialogViewMode: () => {
+    const mode = get().dialogViewMode;
+    set({ dialogViewMode: mode === 'normal' ? 'expanded' : 'normal' });
+  },
 
   getCurrentSnapshot: () => {
     const state = get();
     if (!state.simResult) return null;
     return state.simResult.snapshots[state.currentEventIndex] ?? null;
   },
-}));
+    }),
+    {
+      name: 'app-ui-preferences',
+      partialize: (state) => ({
+        configTab: state.configTab,
+        dialogViewMode: state.dialogViewMode,
+      }),
+    },
+  ),
+);
