@@ -186,4 +186,40 @@
   .config-dialog {
     transition-duration: 1ms;
   }
+  .formula-card {
+    animation: none !important;
+  }
+  .formula-content {
+    animation: none !important;
+  }
+}
+
+@keyframes formula-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes formula-content-expand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+  }
+}
+
+.formula-card {
+  animation: formula-fade-in 0.4s ease-out both;
+}
+
+.formula-content {
+  animation: formula-content-expand 0.35s ease-out both;
 }

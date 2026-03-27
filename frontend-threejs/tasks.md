@@ -5,18 +5,18 @@
 - [x] Crear un **tour guiado** con enfoque educativo usando **Driver.js**, asegurando que el diseño (tipografías, colores, spaciados, overlays y botones) quede totalmente alineado con el estilo visual actual de la app y sea responsive.
 
 ## Generador: mejoras funcionales y educativas
-- [ ] Mejorar la pestaña de **Ecuaciones**:
-  - [ ] añadir animaciones para hacer la interacción más dinámica
-  - [ ] usar colores para resaltar componentes clave de las fórmulas
-  - [ ] aplicar buen formato matemático con una librería (por ejemplo, **KaTeX** o **MathJax**)
-- [ ] En el tab **Generador**, implementar validación/asistencia para elegir parámetros que garanticen **período máximo N** en:
-  - [ ] Modelo congruencial lineal
-  - [ ] Modelo congruencial multiplicativo  
+- [x] Mejorar la pestaña de **Ecuaciones**:
+  - [x] añadir animaciones para hacer la interacción más dinámica
+  - [x] usar colores para resaltar componentes clave de las fórmulas
+  - [x] aplicar buen formato matemático con una librería (por ejemplo, **KaTeX** o **MathJax**)
+- [x] En el tab **Generador**, implementar validación/asistencia para elegir parámetros que garanticen **período máximo N** en:
+  - [x] Modelo congruencial lineal
+  - [x] Modelo congruencial multiplicativo
   Referencia: condiciones de Banks, Carson, Nelson y Nicol.
-- [ ] Agregar un botón de **Ayuda educativa** en el tab Generador para explicar:
-  - [ ] cómo funciona cada tipo de generador
-  - [ ] en qué casos aplicarlo
-  - [ ] interpretación de resultados
+- [x] Agregar un botón de **Ayuda educativa** en el tab Generador para explicar:
+  - [x] cómo funciona cada tipo de generador
+  - [x] en qué casos aplicarlo
+  - [x] interpretación de resultados
 
 ## Inputs, validaciones y feedback
 - [ ] Mejorar UI/UX de inputs (estilo, consistencia y legibilidad).

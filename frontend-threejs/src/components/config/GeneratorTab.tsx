@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useStore } from '@/store/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,9 @@ import { Separator } from '@/components/ui/separator';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine } from 'recharts';
 import type { GeneratorType } from '@/lib/generators/types';
 import type { ChiSquareDetails, KSDetails, PokerDetails } from '@/lib/tests/types';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, Sparkles } from 'lucide-react';
+import { EducationalHelp } from './EducationalHelp';
+import { validateLCG, validateMCG } from '@/lib/generators/validation';
 
 export function GeneratorTab() {
   const generatorType = useStore((s) => s.generatorType);
@@ -38,13 +41,34 @@ export function GeneratorTab() {
   const pokerResult = useStore((s) => s.pokerResult);
   const testError = useStore((s) => s.testError);
 
+  const lcgValidation = useMemo(
+    () => validateLCG(lcgConfig.a, lcgConfig.c, lcgConfig.m),
+    [lcgConfig.a, lcgConfig.c, lcgConfig.m],
+  );
+
+  const mcgValidation = useMemo(
+    () => validateMCG(mcgConfig.a, mcgConfig.m, mcgConfig.seed),
+    [mcgConfig.a, mcgConfig.m, mcgConfig.seed],
+  );
+
+  const suggestLCGParams = () => {
+    setLCGConfig({ a: 1664525, c: 1013904223, m: 4294967296, seed: 1 });
+  };
+
+  const suggestMCGParams = () => {
+    setMCGConfig({ a: 48271, m: 2147483647, seed: 1 });
+  };
+
   return (
     <div className="space-y-6">
       {/* Generator Config */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Parametros del Generador</CardTitle>
+            <CardTitle className="text-base flex items-center justify-between">
+              <span>Parámetros del Generador</span>
+              <EducationalHelp generatorType={generatorType} />
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -111,6 +135,47 @@ export function GeneratorTab() {
                     max={10000}
                   />
                 </div>
+
+                {/* LCG Validation */}
+                <div className="rounded-lg border p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium">Período máximo (Hull-Dobell)</span>
+                    {lcgValidation.hasFullPeriod ? (
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Garantizado
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        <AlertTriangle className="h-3 w-3 mr-1" /> No garantizado
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    {lcgValidation.checks.map((check, i) => (
+                      <div key={i} className="flex items-start gap-2 text-xs">
+                        {check.passed ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                        ) : (
+                          <XCircle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
+                        )}
+                        <span className="text-muted-foreground">{check.message}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Período: <span className="font-mono">{lcgValidation.currentPeriod}</span>
+                  </div>
+                  {!lcgValidation.hasFullPeriod && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-xs h-7"
+                      onClick={suggestLCGParams}
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" /> Sugerir parámetros óptimos
+                    </Button>
+                  )}
+                </div>
               </>
             )}
 
@@ -154,6 +219,47 @@ export function GeneratorTab() {
                       max={10000}
                     />
                   </div>
+                </div>
+
+                {/* MCG Validation */}
+                <div className="rounded-lg border p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium">Período máximo (MCG)</span>
+                    {mcgValidation.hasFullPeriod ? (
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Garantizado
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        <AlertTriangle className="h-3 w-3 mr-1" /> No garantizado
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    {mcgValidation.checks.map((check, i) => (
+                      <div key={i} className="flex items-start gap-2 text-xs">
+                        {check.passed ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                        ) : (
+                          <XCircle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
+                        )}
+                        <span className="text-muted-foreground">{check.message}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Período: <span className="font-mono">{mcgValidation.currentPeriod}</span>
+                  </div>
+                  {!mcgValidation.hasFullPeriod && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-xs h-7"
+                      onClick={suggestMCGParams}
+                    >
+                      <Sparkles className="h-3 w-3 mr-1" /> Sugerir parámetros óptimos
+                    </Button>
+                  )}
                 </div>
               </>
             )}
@@ -279,7 +385,7 @@ export function GeneratorTab() {
       {(chiSquareResult || ksResult || pokerResult) && (
         <>
           <Separator />
-          <h3 className="text-base font-semibold">Resultados de Pruebas Estadisticas</h3>
+          <h3 className="text-base font-semibold">Resultados de Pruebas Estadísticas</h3>
           {testError && <p className="text-sm text-destructive">{testError}</p>}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Chi-Square */}
