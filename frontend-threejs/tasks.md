@@ -41,16 +41,16 @@
 - [x] Mostrar mensaje educativo cuando la semilla sea **degenerada** (ej. converge a 0), explicando por qué ocurre la degeneración.
 
 ## Visualización de resultados y pruebas estadísticas
-- [ ] Mejorar UI de la tabla de resultados en el tab **Generador**.
-- [ ] Mejorar sección de **pruebas estadísticas** para que cada prueba pueda expandir su gráfica.
-- [ ] Al expandir una prueba estadística, incluir explicación educativa:
-  - [ ] qué evalúa la prueba
-  - [ ] cómo se realiza
-  - [ ] apoyo con animaciones explicativas
-- [ ] En el card **Secuencia Generada**, agregar explicación de la gráfica debajo del chart. Ademas agregar tambien la funcionalidad de expancion de esta grafica.
+- [x] Mejorar UI de la tabla de resultados en el tab **Generador**.
+- [x] Mejorar sección de **pruebas estadísticas** para que cada prueba pueda expandir su gráfica.
+- [x] Al expandir una prueba estadística, incluir explicación educativa:
+  - [x] qué evalúa la prueba
+  - [x] cómo se realiza
+  - [x] apoyo con animaciones explicativas
+- [x] En el card **Secuencia Generada**, agregar explicación de la gráfica debajo del chart. Ademas agregar tambien la funcionalidad de expancion de esta grafica.
 - [x] En la gráfica de **Secuencia Generada**, agregar líneas verticales explicativas para indicar período o repetición de valores.
 
 ## Tab Comparar
-- [ ] En el tab **Comparar**, agregar inputs para parámetros necesarios de los distintos generadores.
-- [ ] En tab **Comparar**, después de resultados de comparación, agregar una tabla con solo el valor **Ri** de cada modelo.
-- [ ] En tab **Comparar**, permitir visualizar también la **gráfica de la prueba** (igual que en el tab Generador), para facilitar el análisis visual entre modelos.
+- [x] En el tab **Comparar**, agregar inputs para parámetros necesarios de los distintos generadores.
+- [x] En tab **Comparar**, después de resultados de comparación, agregar una tabla con solo el valor **Ri** de cada modelo.
+- [x] En tab **Comparar**, permitir visualizar también la **gráfica de la prueba** (igual que en el tab Generador), para facilitar el análisis visual entre modelos.
