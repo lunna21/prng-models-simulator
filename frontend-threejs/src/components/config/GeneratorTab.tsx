@@ -149,25 +149,25 @@ export function GeneratorTab() {
   };
 
   const middleSquareColumns = [
-    { label: 'N', tip: 'Número de iteración de la secuencia.', className: 'w-12 text-center' },
-    { label: 'Xₙ', tip: 'Valor actual antes de aplicar el método.', className: 'text-right' },
-    { label: 'Izq.', tip: 'Dígitos de la parte izquierda tras elevar al cuadrado.' },
+    { label: 'N', tip: 'Número de iteración de la secuencia.', className: 'w-12 text-center generator-col-neutral' },
+    { label: 'Xₙ', tip: 'Valor actual antes de aplicar el método.', className: 'text-center generator-col-entry' },
+    { label: 'Izq.', tip: 'Dígitos de la parte izquierda tras elevar al cuadrado.', className: 'text-center generator-col-transform' },
     {
       label: 'Centro',
       tip: 'Bloque central extraído del cuadrado; se usa como siguiente semilla.',
-      className: 'bg-muted/50 text-center',
+      className: 'text-center generator-col-transform',
     },
-    { label: 'Der.', tip: 'Dígitos de la parte derecha tras elevar al cuadrado.' },
-    { label: 'Xₙ₊₁', tip: 'Siguiente valor entero generado.', className: 'text-right' },
-    { label: 'Rᵢ', tip: 'Valor normalizado en el intervalo [0, 1).', className: 'text-right' },
+    { label: 'Der.', tip: 'Dígitos de la parte derecha tras elevar al cuadrado.', className: 'text-center generator-col-transform' },
+    { label: 'Xₙ₊₁', tip: 'Siguiente valor entero generado.', className: 'text-center generator-col-output' },
+    { label: 'Rᵢ', tip: 'Valor normalizado en el intervalo [0, 1).', className: 'text-center generator-col-output' },
   ];
 
   const congruentialColumns = [
-    { label: 'N', tip: 'Número de iteración de la secuencia.', className: 'w-16 text-center' },
-    { label: 'Xₙ', tip: 'Valor actual antes de aplicar la fórmula.', className: 'text-right' },
-    { label: 'Fórmula', tip: 'Operación aplicada para calcular el siguiente valor.' },
-    { label: 'Xₙ₊₁', tip: 'Siguiente valor entero generado.', className: 'text-right' },
-    { label: 'Rᵢ', tip: 'Valor normalizado en el intervalo [0, 1).', className: 'text-right' },
+    { label: 'N', tip: 'Número de iteración de la secuencia.', className: 'w-16 text-center generator-col-neutral' },
+    { label: 'Xₙ', tip: 'Valor actual antes de aplicar la fórmula.', className: 'text-center generator-col-entry' },
+    { label: 'Fórmula', tip: 'Operación aplicada para calcular el siguiente valor.', className: 'text-center generator-col-transform' },
+    { label: 'Xₙ₊₁', tip: 'Siguiente valor entero generado.', className: 'text-center generator-col-output' },
+    { label: 'Rᵢ', tip: 'Valor normalizado en el intervalo [0, 1).', className: 'text-center generator-col-output' },
   ];
 
   return (
@@ -611,18 +611,26 @@ export function GeneratorTab() {
 
       {/* Sequence Table */}
       {generatorResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Tabla de Resultados</CardTitle>
+        <Card className="mx-auto w-full max-w-6xl border-border/80 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base text-center">Tabla de Resultados</CardTitle>
+            <p className="text-xs text-center text-muted-foreground">
+              Sigue cada iteracion: valor de entrada, transformacion aplicada y resultado normalizado en el intervalo [0, 1).
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-[11px]">
+              <Badge variant="outline" className="generator-legend-entry">Entrada</Badge>
+              <Badge variant="outline" className="generator-legend-transform">Transformacion</Badge>
+              <Badge variant="outline" className="generator-legend-output">Salida normalizada</Badge>
+            </div>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[280px]">
+          <CardContent className="pt-0">
+            <ScrollArea className="h-[320px] rounded-xl border border-border/70 bg-gradient-to-b from-muted/40 via-card to-card px-2 py-2">
               {generatorType === 'middle-square' ? (
-                <Table>
-                  <TableHeader className="sticky top-0 bg-card z-10 shadow-sm">
+                <Table className="generator-result-table min-w-[920px]">
+                  <TableHeader className="generator-table-header sticky top-0 z-10 shadow-sm">
                     <TableRow>
                       {middleSquareColumns.map((col) => (
-                        <TableHead key={col.label} className={col.className}>
+                        <TableHead key={col.label} className={`font-semibold text-foreground ${col.className}`}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <span className="inline-flex cursor-help items-center">{col.label}</span>
@@ -642,26 +650,26 @@ export function GeneratorTab() {
                       return (
                         <TableRow 
                           key={step.iteration} 
-                          className={`transition-colors hover:bg-muted/50 ${isEven ? 'bg-muted/20' : ''}`}
+                          className={`generator-table-row ${isEven ? 'generator-table-row-even' : ''}`}
                         >
-                          <TableCell className="font-mono text-xs text-center">{fmt(step.iteration)}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{fmt(step.xPrev)}</TableCell>
-                          <TableCell className="font-mono text-xs text-muted-foreground">{ms.leftPart || '—'}</TableCell>
-                          <TableCell className="font-mono text-xs font-semibold bg-muted/50 text-center">{ms.extracted}</TableCell>
-                          <TableCell className="font-mono text-xs text-muted-foreground">{ms.rightPart || '—'}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{fmt(step.xNext)}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{step.normalized}</TableCell>
+                          <TableCell className="generator-cell-index font-mono text-xs text-center">{fmt(step.iteration)}</TableCell>
+                          <TableCell className="generator-cell-input font-mono text-xs text-center">{fmt(step.xPrev)}</TableCell>
+                          <TableCell className="generator-cell-side font-mono text-xs text-muted-foreground text-center">{ms.leftPart || '—'}</TableCell>
+                          <TableCell className="generator-cell-transform font-mono text-xs font-semibold text-center">{ms.extracted}</TableCell>
+                          <TableCell className="generator-cell-side font-mono text-xs text-muted-foreground text-center">{ms.rightPart || '—'}</TableCell>
+                          <TableCell className="generator-cell-output font-mono text-xs text-center">{fmt(step.xNext)}</TableCell>
+                          <TableCell className="generator-cell-ri font-mono text-xs text-center">{step.normalized}</TableCell>
                         </TableRow>
                       );
                     })}
                   </TableBody>
                 </Table>
               ) : (
-                <Table>
-                  <TableHeader className="sticky top-0 bg-card z-10 shadow-sm">
+                <Table className="generator-result-table min-w-[760px]">
+                  <TableHeader className="generator-table-header sticky top-0 z-10 shadow-sm">
                     <TableRow>
                       {congruentialColumns.map((col) => (
-                        <TableHead key={col.label} className={col.className}>
+                        <TableHead key={col.label} className={`font-semibold text-foreground ${col.className}`}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <span className="inline-flex cursor-help items-center">{col.label}</span>
@@ -680,13 +688,13 @@ export function GeneratorTab() {
                       return (
                         <TableRow 
                           key={step.iteration} 
-                          className={`transition-colors hover:bg-muted/50 ${isEven ? 'bg-muted/20' : ''}`}
+                          className={`generator-table-row ${isEven ? 'generator-table-row-even' : ''}`}
                         >
-                          <TableCell className="font-mono text-xs text-center">{fmt(step.iteration)}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{fmt(step.xPrev)}</TableCell>
-                          <TableCell className="font-mono text-xs">{step.formula}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{fmt(step.xNext)}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{step.normalized}</TableCell>
+                          <TableCell className="generator-cell-index font-mono text-xs text-center">{fmt(step.iteration)}</TableCell>
+                          <TableCell className="generator-cell-input font-mono text-xs text-center">{fmt(step.xPrev)}</TableCell>
+                          <TableCell className="generator-cell-transform font-mono text-xs text-center">{step.formula}</TableCell>
+                          <TableCell className="generator-cell-output font-mono text-xs text-center">{fmt(step.xNext)}</TableCell>
+                          <TableCell className="generator-cell-ri font-mono text-xs text-center">{step.normalized}</TableCell>
                         </TableRow>
                       );
                     })}
