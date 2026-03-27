@@ -6,18 +6,18 @@
  * pattern and runs a chi-square test on the observed vs expected frequencies.
  */
 
-import type { TestResult, PokerDetails, PokerHandCount } from './types';
+import type { TestResult, PokerDetails, PokerHandCount, PokerHandSample, PokerMergedCategory } from './types';
 
 // Hand categories for poker test with d=10 digits, r=5 positions
 // Probabilities calculated for digits 0-9 with 5 positions
 const HAND_CATEGORIES = [
-  { name: 'Todos diferentes (TD)', probability: 0.3024 },
-  { name: 'Un par (1P)', probability: 0.504 },
-  { name: 'Dos pares (2P)', probability: 0.108 },
-  { name: 'Tercia (TP)', probability: 0.072 },
-  { name: 'Full house (FH)', probability: 0.009 },
-  { name: 'Póker (PK)', probability: 0.0045 },
-  { name: 'Quintilla (QN)', probability: 0.0001 },
+  { code: 'TD', name: 'Todos diferentes (TD)', probability: 0.3024 },
+  { code: '1P', name: 'Un par (1P)', probability: 0.504 },
+  { code: '2P', name: 'Dos pares (2P)', probability: 0.108 },
+  { code: 'TP', name: 'Tercia (TP)', probability: 0.072 },
+  { code: 'FH', name: 'Full house (FH)', probability: 0.009 },
+  { code: 'PK', name: 'Póker (PK)', probability: 0.0045 },
+  { code: 'QN', name: 'Quintilla (QN)', probability: 0.0001 },
 ];
 
 // Chi-square critical values at alpha=0.05
@@ -32,7 +32,7 @@ function getChi2Critical(df: number): number {
   return df * Math.pow(term, 3);
 }
 
-function classifyHand(digits: number[]): number {
+function classifyHand(digits: number[]): { categoryIndex: number; frequencyPattern: number[] } {
   // Count frequency of each digit
   const freq = new Map<number, number>();
   for (const d of digits) {
@@ -42,17 +42,17 @@ function classifyHand(digits: number[]): number {
   const counts = Array.from(freq.values()).sort((a, b) => b - a);
   const uniqueCount = counts.length;
 
-  if (uniqueCount === 5) return 0; // All different
-  if (uniqueCount === 4) return 1; // One pair
+  if (uniqueCount === 5) return { categoryIndex: 0, frequencyPattern: counts }; // All different
+  if (uniqueCount === 4) return { categoryIndex: 1, frequencyPattern: counts }; // One pair
   if (uniqueCount === 3) {
-    if (counts[0] === 3) return 3; // Three of a kind
-    return 2; // Two pair
+    if (counts[0] === 3) return { categoryIndex: 3, frequencyPattern: counts }; // Three of a kind
+    return { categoryIndex: 2, frequencyPattern: counts }; // Two pair
   }
   if (uniqueCount === 2) {
-    if (counts[0] === 4) return 5; // Four of a kind
-    return 4; // Full house
+    if (counts[0] === 4) return { categoryIndex: 5, frequencyPattern: counts }; // Four of a kind
+    return { categoryIndex: 4, frequencyPattern: counts }; // Full house
   }
-  return 6; // Five of a kind (quintilla)
+  return { categoryIndex: 6, frequencyPattern: counts }; // Five of a kind (quintilla)
 }
 
 export function pokerTest(values: number[]): TestResult {
@@ -70,6 +70,8 @@ export function pokerTest(values: number[]): TestResult {
 
   // Count observed hand types
   const observed = new Array(HAND_CATEGORIES.length).fill(0);
+  const sampleHands: PokerHandSample[] = [];
+  const maxSamples = Math.min(totalHands, 30);
 
   for (let h = 0; h < totalHands; h++) {
     const hand: number[] = [];
@@ -79,8 +81,18 @@ export function pokerTest(values: number[]): TestResult {
       const digit = Math.floor(val * 10) % 10;
       hand.push(digit);
     }
-    const category = classifyHand(hand);
-    observed[category]++;
+    const classification = classifyHand(hand);
+    observed[classification.categoryIndex]++;
+
+    if (h < maxSamples) {
+      sampleHands.push({
+        handIndex: h + 1,
+        digits: hand,
+        frequencyPattern: classification.frequencyPattern,
+        categoryCode: HAND_CATEGORIES[classification.categoryIndex].code,
+        categoryName: HAND_CATEGORIES[classification.categoryIndex].name,
+      });
+    }
   }
 
   // Compute expected frequencies and chi-square
@@ -135,6 +147,17 @@ export function pokerTest(values: number[]): TestResult {
   const criticalValue = getChi2Critical(df);
   const pass = chiSquare <= criticalValue;
 
+  const mergedCategories: PokerMergedCategory[] = mergedObserved.map((obs, i) => {
+    const exp = mergedExpected[i];
+    const contribution = exp > 0 ? Math.pow(obs - exp, 2) / exp : 0;
+    return {
+      name: mergedNames[i],
+      observed: obs,
+      expected: Math.round(exp * 10000) / 10000,
+      contribution: Math.round(contribution * 10000) / 10000,
+    };
+  });
+
   const handCounts: PokerHandCount[] = HAND_CATEGORIES.map((cat, i) => ({
     name: cat.name,
     observed: observed[i],
@@ -145,6 +168,8 @@ export function pokerTest(values: number[]): TestResult {
   const details: PokerDetails = {
     totalHands,
     handCounts,
+    sampleHands,
+    mergedCategories,
     chiSquareStatistic: Math.round(chiSquare * 10000) / 10000,
     chiSquareCritical: Math.round(criticalValue * 10000) / 10000,
     degreesOfFreedom: df,

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -24,6 +24,7 @@ import type { ChiSquareDetails, KSDetails, PokerDetails } from '@/lib/tests/type
 import { CheckCircle2, XCircle, AlertTriangle, Sparkles, Info, ChevronDown, ChevronRight, Maximize2 } from 'lucide-react';
 import { EducationalHelp } from './EducationalHelp';
 import { MathFormula } from './MathFormula';
+import { PokerHandsCarousel } from './PokerHandsCarousel';
 import { validateLCG, validateMCG } from '@/lib/generators/validation';
 import { detectPeriod, findRepetition } from '@/lib/generators/period-detection';
 import { getTestHelpContent } from './test-help-content';
@@ -98,7 +99,9 @@ export function GeneratorTab() {
   const testError = useStore((s) => s.testError);
 
   const [isSequenceDialogOpen, setIsSequenceDialogOpen] = useState(false);
-  const [expandedTest, setExpandedTest] = useState<string | null>(null);
+  const [isChiModalOpen, setIsChiModalOpen] = useState(false);
+  const [isKSModalOpen, setIsKSModalOpen] = useState(false);
+  const [isPokerModalOpen, setIsPokerModalOpen] = useState(false);
   const [showLCGValidationDetails, setShowLCGValidationDetails] = useState(false);
   const [showMCGValidationDetails, setShowMCGValidationDetails] = useState(false);
 
@@ -146,25 +149,25 @@ export function GeneratorTab() {
   };
 
   const middleSquareColumns = [
-    { label: 'N', tip: 'Número de iteración de la secuencia.', className: 'w-12 text-center' },
-    { label: 'Xₙ', tip: 'Valor actual antes de aplicar el método.', className: 'text-right' },
-    { label: 'Izq.', tip: 'Dígitos de la parte izquierda tras elevar al cuadrado.' },
+    { label: 'N', tip: 'Número de iteración de la secuencia.', className: 'w-12 text-center generator-col-neutral' },
+    { label: 'Xₙ', tip: 'Valor actual antes de aplicar el método.', className: 'text-center generator-col-entry' },
+    { label: 'Izq.', tip: 'Dígitos de la parte izquierda tras elevar al cuadrado.', className: 'text-center generator-col-transform' },
     {
       label: 'Centro',
       tip: 'Bloque central extraído del cuadrado; se usa como siguiente semilla.',
-      className: 'bg-muted/50 text-center',
+      className: 'text-center generator-col-transform',
     },
-    { label: 'Der.', tip: 'Dígitos de la parte derecha tras elevar al cuadrado.' },
-    { label: 'Xₙ₊₁', tip: 'Siguiente valor entero generado.', className: 'text-right' },
-    { label: 'Rᵢ', tip: 'Valor normalizado en el intervalo [0, 1).', className: 'text-right' },
+    { label: 'Der.', tip: 'Dígitos de la parte derecha tras elevar al cuadrado.', className: 'text-center generator-col-transform' },
+    { label: 'Xₙ₊₁', tip: 'Siguiente valor entero generado.', className: 'text-center generator-col-output' },
+    { label: 'Rᵢ', tip: 'Valor normalizado en el intervalo [0, 1).', className: 'text-center generator-col-output' },
   ];
 
   const congruentialColumns = [
-    { label: 'N', tip: 'Número de iteración de la secuencia.', className: 'w-16 text-center' },
-    { label: 'Xₙ', tip: 'Valor actual antes de aplicar la fórmula.', className: 'text-right' },
-    { label: 'Fórmula', tip: 'Operación aplicada para calcular el siguiente valor.' },
-    { label: 'Xₙ₊₁', tip: 'Siguiente valor entero generado.', className: 'text-right' },
-    { label: 'Rᵢ', tip: 'Valor normalizado en el intervalo [0, 1).', className: 'text-right' },
+    { label: 'N', tip: 'Número de iteración de la secuencia.', className: 'w-16 text-center generator-col-neutral' },
+    { label: 'Xₙ', tip: 'Valor actual antes de aplicar la fórmula.', className: 'text-center generator-col-entry' },
+    { label: 'Fórmula', tip: 'Operación aplicada para calcular el siguiente valor.', className: 'text-center generator-col-transform' },
+    { label: 'Xₙ₊₁', tip: 'Siguiente valor entero generado.', className: 'text-center generator-col-output' },
+    { label: 'Rᵢ', tip: 'Valor normalizado en el intervalo [0, 1).', className: 'text-center generator-col-output' },
   ];
 
   return (
@@ -608,18 +611,26 @@ export function GeneratorTab() {
 
       {/* Sequence Table */}
       {generatorResult && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Tabla de Resultados</CardTitle>
+        <Card className="mx-auto w-full max-w-6xl border-border/80 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base text-center">Tabla de Resultados</CardTitle>
+            <p className="text-xs text-center text-muted-foreground">
+              Sigue cada iteracion: valor de entrada, transformacion aplicada y resultado normalizado en el intervalo [0, 1).
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-[11px]">
+              <Badge variant="outline" className="generator-legend-entry">Entrada</Badge>
+              <Badge variant="outline" className="generator-legend-transform">Transformacion</Badge>
+              <Badge variant="outline" className="generator-legend-output">Salida normalizada</Badge>
+            </div>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[280px]">
+          <CardContent className="pt-0">
+            <ScrollArea className="h-[320px] rounded-xl border border-border/70 bg-gradient-to-b from-muted/40 via-card to-card px-2 py-2">
               {generatorType === 'middle-square' ? (
-                <Table>
-                  <TableHeader className="sticky top-0 bg-card z-10 shadow-sm">
+                <Table className="generator-result-table min-w-[920px]">
+                  <TableHeader className="generator-table-header sticky top-0 z-10 shadow-sm">
                     <TableRow>
                       {middleSquareColumns.map((col) => (
-                        <TableHead key={col.label} className={col.className}>
+                        <TableHead key={col.label} className={`font-semibold text-foreground ${col.className}`}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <span className="inline-flex cursor-help items-center">{col.label}</span>
@@ -639,26 +650,26 @@ export function GeneratorTab() {
                       return (
                         <TableRow 
                           key={step.iteration} 
-                          className={`transition-colors hover:bg-muted/50 ${isEven ? 'bg-muted/20' : ''}`}
+                          className={`generator-table-row ${isEven ? 'generator-table-row-even' : ''}`}
                         >
-                          <TableCell className="font-mono text-xs text-center">{fmt(step.iteration)}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{fmt(step.xPrev)}</TableCell>
-                          <TableCell className="font-mono text-xs text-muted-foreground">{ms.leftPart || '—'}</TableCell>
-                          <TableCell className="font-mono text-xs font-semibold bg-muted/50 text-center">{ms.extracted}</TableCell>
-                          <TableCell className="font-mono text-xs text-muted-foreground">{ms.rightPart || '—'}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{fmt(step.xNext)}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{step.normalized}</TableCell>
+                          <TableCell className="generator-cell-index font-mono text-xs text-center">{fmt(step.iteration)}</TableCell>
+                          <TableCell className="generator-cell-input font-mono text-xs text-center">{fmt(step.xPrev)}</TableCell>
+                          <TableCell className="generator-cell-side font-mono text-xs text-muted-foreground text-center">{ms.leftPart || '—'}</TableCell>
+                          <TableCell className="generator-cell-transform font-mono text-xs font-semibold text-center">{ms.extracted}</TableCell>
+                          <TableCell className="generator-cell-side font-mono text-xs text-muted-foreground text-center">{ms.rightPart || '—'}</TableCell>
+                          <TableCell className="generator-cell-output font-mono text-xs text-center">{fmt(step.xNext)}</TableCell>
+                          <TableCell className="generator-cell-ri font-mono text-xs text-center">{step.normalized}</TableCell>
                         </TableRow>
                       );
                     })}
                   </TableBody>
                 </Table>
               ) : (
-                <Table>
-                  <TableHeader className="sticky top-0 bg-card z-10 shadow-sm">
+                <Table className="generator-result-table min-w-[760px]">
+                  <TableHeader className="generator-table-header sticky top-0 z-10 shadow-sm">
                     <TableRow>
                       {congruentialColumns.map((col) => (
-                        <TableHead key={col.label} className={col.className}>
+                        <TableHead key={col.label} className={`font-semibold text-foreground ${col.className}`}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <span className="inline-flex cursor-help items-center">{col.label}</span>
@@ -677,13 +688,13 @@ export function GeneratorTab() {
                       return (
                         <TableRow 
                           key={step.iteration} 
-                          className={`transition-colors hover:bg-muted/50 ${isEven ? 'bg-muted/20' : ''}`}
+                          className={`generator-table-row ${isEven ? 'generator-table-row-even' : ''}`}
                         >
-                          <TableCell className="font-mono text-xs text-center">{fmt(step.iteration)}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{fmt(step.xPrev)}</TableCell>
-                          <TableCell className="font-mono text-xs">{step.formula}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{fmt(step.xNext)}</TableCell>
-                          <TableCell className="font-mono text-xs text-right">{step.normalized}</TableCell>
+                          <TableCell className="generator-cell-index font-mono text-xs text-center">{fmt(step.iteration)}</TableCell>
+                          <TableCell className="generator-cell-input font-mono text-xs text-center">{fmt(step.xPrev)}</TableCell>
+                          <TableCell className="generator-cell-transform font-mono text-xs text-center">{step.formula}</TableCell>
+                          <TableCell className="generator-cell-output font-mono text-xs text-center">{fmt(step.xNext)}</TableCell>
+                          <TableCell className="generator-cell-ri font-mono text-xs text-center">{step.normalized}</TableCell>
                         </TableRow>
                       );
                     })}
@@ -706,23 +717,13 @@ export function GeneratorTab() {
           <Separator />
           <h3 className="text-base font-semibold">Resultados de Pruebas Estadísticas</h3>
           {testError && <p className="text-sm text-destructive">{testError}</p>}
-          <div className={`grid gap-4 ${expandedTest ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-3'}`}>
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
             {/* Chi-Square */}
             {chiSquareResult && (
-              <Card className={expandedTest === 'chiSquare' ? 'md:col-span-3' : ''}>
-                <CardHeader 
-                  className="pb-2 cursor-pointer select-none"
-                  onClick={() => setExpandedTest(expandedTest === 'chiSquare' ? null : 'chiSquare')}
-                >
+              <Card>
+                <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      {expandedTest === 'chiSquare' ? (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      {chiSquareResult.testName}
-                    </CardTitle>
+                    <CardTitle className="text-sm">{chiSquareResult.testName}</CardTitle>
                     {chiSquareResult.pass ? (
                       <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                         <CheckCircle2 className="h-3 w-3 mr-1" /> Aprobada
@@ -741,7 +742,7 @@ export function GeneratorTab() {
                     <span className="text-muted-foreground">Valor crítico:</span>
                     <span className="font-mono">{chiSquareResult.criticalValue}</span>
                   </div>
-                  <ResponsiveContainer width="100%" height={expandedTest === 'chiSquare' ? 200 : 120}>
+                  <ResponsiveContainer width="100%" height={120}>
                     <BarChart
                       data={(() => {
                         const d = chiSquareResult.details as ChiSquareDetails;
@@ -753,76 +754,28 @@ export function GeneratorTab() {
                       })()}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="bin" tick={{ fontSize: expandedTest === 'chiSquare' ? 10 : 8 }} />
-                      <YAxis tick={{ fontSize: expandedTest === 'chiSquare' ? 10 : 8 }} />
+                      <XAxis dataKey="bin" tick={{ fontSize: 8 }} />
+                      <YAxis tick={{ fontSize: 8 }} />
                       <RechartsTooltip />
                       <Bar dataKey="Observado" fill="var(--color-chart-1)" />
                       <Bar dataKey="Esperado" fill="var(--color-chart-2)" />
                     </BarChart>
                   </ResponsiveContainer>
-                  {expandedTest === 'chiSquare' && (
-                    <div className="test-content space-y-3 pt-3 border-t">
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-semibold flex items-center gap-2">
-                          {getTestHelpContent('chiSquare').whatItEvaluates.title}
-                        </h5>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {getTestHelpContent('chiSquare').whatItEvaluates.content}
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-semibold">¿Cómo funciona?</h5>
-                        <div className="space-y-2">
-                          {getTestHelpContent('chiSquare').howItWorks.map((step, idx) => (
-                            <div key={idx} className="test-step flex items-start gap-2 text-xs">
-                              <span className="font-semibold text-primary shrink-0">{step.title}</span>
-                              <span className="text-muted-foreground">{step.content}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="rounded-md bg-muted p-3">
-                        <p className="text-xs font-medium mb-1">{getTestHelpContent('chiSquare').keyFormula.label}</p>
-                        <div className="flex items-center justify-center min-h-[32px]">
-                          <MathFormula tex={getTestHelpContent('chiSquare').keyFormula.tex} />
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {getTestHelpContent('chiSquare').keyFormula.description}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <h5 className="text-xs font-semibold">Consejos de interpretación</h5>
-                        <ul className="space-y-1">
-                          {getTestHelpContent('chiSquare').interpretationTips.map((tip, idx) => (
-                            <li key={idx} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                              <span className="text-primary mt-0.5">•</span>
-                              {tip}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
+                  <div className="pt-2">
+                    <Button type="button" variant="outline" size="sm" className="w-full h-8" onClick={() => setIsChiModalOpen(true)}>
+                      <Maximize2 className="h-3.5 w-3.5 mr-1" /> Ver proceso detallado
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
 
             {/* K-S */}
             {ksResult && (
-              <Card className={expandedTest === 'kolmogorovSmirnov' ? 'md:col-span-3' : ''}>
-                <CardHeader 
-                  className="pb-2 cursor-pointer select-none"
-                  onClick={() => setExpandedTest(expandedTest === 'kolmogorovSmirnov' ? null : 'kolmogorovSmirnov')}
-                >
+              <Card>
+                <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      {expandedTest === 'kolmogorovSmirnov' ? (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      {ksResult.testName}
-                    </CardTitle>
+                    <CardTitle className="text-sm">{ksResult.testName}</CardTitle>
                     {ksResult.pass ? (
                       <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                         <CheckCircle2 className="h-3 w-3 mr-1" /> Aprobada
@@ -845,7 +798,7 @@ export function GeneratorTab() {
                     <span className="text-muted-foreground">D-:</span>
                     <span className="font-mono">{(ksResult.details as KSDetails).dMinus}</span>
                   </div>
-                  <ResponsiveContainer width="100%" height={expandedTest === 'kolmogorovSmirnov' ? 200 : 120}>
+                  <ResponsiveContainer width="100%" height={120}>
                     <LineChart
                       data={(() => {
                         const d = ksResult.details as KSDetails;
@@ -858,77 +811,29 @@ export function GeneratorTab() {
                       })()}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="i" tick={{ fontSize: expandedTest === 'kolmogorovSmirnov' ? 10 : 8 }} />
-                      <YAxis domain={[0, 1]} tick={{ fontSize: expandedTest === 'kolmogorovSmirnov' ? 10 : 8 }} />
+                      <XAxis dataKey="i" tick={{ fontSize: 8 }} />
+                      <YAxis domain={[0, 1]} tick={{ fontSize: 8 }} />
                       <RechartsTooltip />
                       <Line type="stepAfter" dataKey="Empirica" stroke="var(--color-chart-1)" dot={false} strokeWidth={1.5} />
                       <Line type="monotone" dataKey="Teorica" stroke="var(--color-chart-2)" dot={false} strokeWidth={1.5} />
                       <ReferenceLine y={0} stroke="#666" />
                     </LineChart>
                   </ResponsiveContainer>
-                  {expandedTest === 'kolmogorovSmirnov' && (
-                    <div className="test-content space-y-3 pt-3 border-t">
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-semibold flex items-center gap-2">
-                          {getTestHelpContent('kolmogorovSmirnov').whatItEvaluates.title}
-                        </h5>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {getTestHelpContent('kolmogorovSmirnov').whatItEvaluates.content}
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-semibold">¿Cómo funciona?</h5>
-                        <div className="space-y-2">
-                          {getTestHelpContent('kolmogorovSmirnov').howItWorks.map((step, idx) => (
-                            <div key={idx} className="test-step flex items-start gap-2 text-xs">
-                              <span className="font-semibold text-primary shrink-0">{step.title}</span>
-                              <span className="text-muted-foreground">{step.content}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="rounded-md bg-muted p-3">
-                        <p className="text-xs font-medium mb-1">{getTestHelpContent('kolmogorovSmirnov').keyFormula.label}</p>
-                        <div className="flex items-center justify-center min-h-[32px]">
-                          <MathFormula tex={getTestHelpContent('kolmogorovSmirnov').keyFormula.tex} />
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {getTestHelpContent('kolmogorovSmirnov').keyFormula.description}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <h5 className="text-xs font-semibold">Consejos de interpretación</h5>
-                        <ul className="space-y-1">
-                          {getTestHelpContent('kolmogorovSmirnov').interpretationTips.map((tip, idx) => (
-                            <li key={idx} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                              <span className="text-primary mt-0.5">•</span>
-                              {tip}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
+                  <div className="pt-2">
+                    <Button type="button" variant="outline" size="sm" className="w-full h-8" onClick={() => setIsKSModalOpen(true)}>
+                      <Maximize2 className="h-3.5 w-3.5 mr-1" /> Ver proceso detallado
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
 
             {/* Poker */}
             {pokerResult && (
-              <Card className={expandedTest === 'poker' ? 'md:col-span-3' : ''}>
-                <CardHeader 
-                  className="pb-2 cursor-pointer select-none"
-                  onClick={() => setExpandedTest(expandedTest === 'poker' ? null : 'poker')}
-                >
+              <Card>
+                <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      {expandedTest === 'poker' ? (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      )}
-                      {pokerResult.testName}
-                    </CardTitle>
+                    <CardTitle className="text-sm">{pokerResult.testName}</CardTitle>
                     {pokerResult.pass ? (
                       <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                         <CheckCircle2 className="h-3 w-3 mr-1" /> Aprobada
@@ -949,7 +854,7 @@ export function GeneratorTab() {
                     <span className="text-muted-foreground">Manos:</span>
                     <span className="font-mono">{fmt((pokerResult.details as PokerDetails).totalHands)}</span>
                   </div>
-                  <ResponsiveContainer width="100%" height={expandedTest === 'poker' ? 200 : 120}>
+                  <ResponsiveContainer width="100%" height={120}>
                     <BarChart
                       data={(() => {
                         const d = pokerResult.details as PokerDetails;
@@ -964,59 +869,419 @@ export function GeneratorTab() {
                     >
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" tick={{ fontSize: 7 }} angle={-30} textAnchor="end" height={50} />
-                      <YAxis tick={{ fontSize: expandedTest === 'poker' ? 10 : 8 }} />
+                      <YAxis tick={{ fontSize: 8 }} />
                       <RechartsTooltip />
                       <Bar dataKey="Observado" fill="var(--color-chart-1)" />
                       <Bar dataKey="Esperado" fill="var(--color-chart-2)" />
                     </BarChart>
                   </ResponsiveContainer>
-                  {expandedTest === 'poker' && (
-                    <div className="test-content space-y-3 pt-3 border-t">
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-semibold flex items-center gap-2">
-                          {getTestHelpContent('poker').whatItEvaluates.title}
-                        </h5>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {getTestHelpContent('poker').whatItEvaluates.content}
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="text-sm font-semibold">¿Cómo funciona?</h5>
-                        <div className="space-y-2">
-                          {getTestHelpContent('poker').howItWorks.map((step, idx) => (
-                            <div key={idx} className="test-step flex items-start gap-2 text-xs">
-                              <span className="font-semibold text-primary shrink-0">{step.title}</span>
-                              <span className="text-muted-foreground">{step.content}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="rounded-md bg-muted p-3">
-                        <p className="text-xs font-medium mb-1">{getTestHelpContent('poker').keyFormula.label}</p>
-                        <div className="flex items-center justify-center min-h-[32px]">
-                          <MathFormula tex={getTestHelpContent('poker').keyFormula.tex} />
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {getTestHelpContent('poker').keyFormula.description}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <h5 className="text-xs font-semibold">Consejos de interpretación</h5>
-                        <ul className="space-y-1">
-                          {getTestHelpContent('poker').interpretationTips.map((tip, idx) => (
-                            <li key={idx} className="text-xs text-muted-foreground flex items-start gap-1.5">
-                              <span className="text-primary mt-0.5">•</span>
-                              {tip}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
+                  <div className="pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-8"
+                      onClick={() => setIsPokerModalOpen(true)}
+                    >
+                      <Maximize2 className="h-3.5 w-3.5 mr-1" /> Ver proceso detallado
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
           </div>
+
+          {chiSquareResult && (
+            <Dialog open={isChiModalOpen} onOpenChange={setIsChiModalOpen}>
+              <DialogContent className="w-[95vw] max-w-[95vw] h-[92vh] p-0 gap-0 flex flex-col">
+                <DialogHeader className="px-6 py-4 border-b border-border poker-modal-header">
+                  <DialogTitle className="flex items-center gap-2">
+                    <span>Prueba Chi-Cuadrada: proceso completo</span>
+                    {chiSquareResult.pass ? (
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Aprobada
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive">
+                        <XCircle className="h-3 w-3 mr-1" /> Rechazada
+                      </Badge>
+                    )}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm">
+                    Se muestra la construcción por intervalos, frecuencias observadas/esperadas y la suma de contribuciones del estadístico chi-cuadrada.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="flex-1 min-h-0 overflow-auto p-6 space-y-5 poker-modal-content">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">Estadístico χ²</span>
+                      <p className="font-mono font-semibold">{chiSquareResult.statistic}</p>
+                    </div>
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">Valor crítico</span>
+                      <p className="font-mono font-semibold">{chiSquareResult.criticalValue}</p>
+                    </div>
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">Intervalos (k)</span>
+                      <p className="font-mono font-semibold">{(chiSquareResult.details as ChiSquareDetails).bins}</p>
+                    </div>
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">Grados de libertad</span>
+                      <p className="font-mono font-semibold">{(chiSquareResult.details as ChiSquareDetails).degreesOfFreedom}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">{getTestHelpContent('chiSquare').whatItEvaluates.title}</h5>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {getTestHelpContent('chiSquare').whatItEvaluates.content}
+                    </p>
+                    <div className="rounded-md bg-muted p-3">
+                      <p className="text-xs font-medium mb-1">{getTestHelpContent('chiSquare').keyFormula.label}</p>
+                      <div className="flex items-center justify-center min-h-[32px]">
+                        <MathFormula tex={getTestHelpContent('chiSquare').keyFormula.tex} />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {getTestHelpContent('chiSquare').keyFormula.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">¿Cómo funciona?</h5>
+                    <div className="space-y-2">
+                      {getTestHelpContent('chiSquare').howItWorks.map((step, idx) => (
+                        <div key={idx} className="poker-step-card flex items-start gap-2 text-xs rounded-md border bg-background p-2.5">
+                          <span className="font-semibold text-primary shrink-0">{step.title}</span>
+                          <span className="text-muted-foreground leading-relaxed">{step.content}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">Frecuencias por intervalo</h5>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart
+                        data={(() => {
+                          const d = chiSquareResult.details as ChiSquareDetails;
+                          return d.observed.map((o, i) => ({
+                            bin: `${(i / d.bins).toFixed(1)}-${((i + 1) / d.bins).toFixed(1)}`,
+                            Observado: o,
+                            Esperado: d.expected[i],
+                          }));
+                        })()}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="bin" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} />
+                        <RechartsTooltip />
+                        <Bar dataKey="Observado" fill="var(--color-chart-1)" />
+                        <Bar dataKey="Esperado" fill="var(--color-chart-2)" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">Aporte al estadístico por intervalo</h5>
+                    <div className="space-y-2">
+                      {(chiSquareResult.details as ChiSquareDetails).observed.map((obs, i) => {
+                        const details = chiSquareResult.details as ChiSquareDetails;
+                        return (
+                          <div key={i} className="rounded-md border bg-background p-2.5 text-xs poker-contribution-row">
+                            <div className="font-medium mb-1">
+                              Intervalo {(i / details.bins).toFixed(1)}-{((i + 1) / details.bins).toFixed(1)}
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 text-muted-foreground">
+                              <span>Obs: <span className="font-mono text-foreground">{obs}</span></span>
+                              <span>Esp: <span className="font-mono text-foreground">{details.expected[i].toFixed(2)}</span></span>
+                              <span>Contrib: <span className="font-mono text-foreground">{details.contributions[i].toFixed(4)}</span></span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-2 poker-section-card">
+                    <h5 className="text-sm font-semibold">Consejos de interpretación</h5>
+                    <ul className="space-y-1">
+                      {getTestHelpContent('chiSquare').interpretationTips.map((tip, idx) => (
+                        <li key={idx} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                          <span className="text-primary mt-0.5">•</span>
+                          {tip}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {ksResult && (
+            <Dialog open={isKSModalOpen} onOpenChange={setIsKSModalOpen}>
+              <DialogContent className="w-[95vw] max-w-[95vw] h-[92vh] p-0 gap-0 flex flex-col">
+                <DialogHeader className="px-6 py-4 border-b border-border poker-modal-header">
+                  <DialogTitle className="flex items-center gap-2">
+                    <span>Prueba Kolmogorov-Smirnov: proceso completo</span>
+                    {ksResult.pass ? (
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Aprobada
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive">
+                        <XCircle className="h-3 w-3 mr-1" /> Rechazada
+                      </Badge>
+                    )}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm">
+                    Se muestra el ordenamiento, la CDF empírica vs teórica y el cálculo de D+, D- y D máximo.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="flex-1 min-h-0 overflow-auto p-6 space-y-5 poker-modal-content">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">D máximo</span>
+                      <p className="font-mono font-semibold">{ksResult.statistic}</p>
+                    </div>
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">Valor crítico</span>
+                      <p className="font-mono font-semibold">{ksResult.criticalValue}</p>
+                    </div>
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">D+</span>
+                      <p className="font-mono font-semibold">{(ksResult.details as KSDetails).dPlus}</p>
+                    </div>
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">D-</span>
+                      <p className="font-mono font-semibold">{(ksResult.details as KSDetails).dMinus}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">{getTestHelpContent('kolmogorovSmirnov').whatItEvaluates.title}</h5>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {getTestHelpContent('kolmogorovSmirnov').whatItEvaluates.content}
+                    </p>
+                    <div className="rounded-md bg-muted p-3">
+                      <p className="text-xs font-medium mb-1">{getTestHelpContent('kolmogorovSmirnov').keyFormula.label}</p>
+                      <div className="flex items-center justify-center min-h-[32px]">
+                        <MathFormula tex={getTestHelpContent('kolmogorovSmirnov').keyFormula.tex} />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {getTestHelpContent('kolmogorovSmirnov').keyFormula.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">¿Cómo funciona?</h5>
+                    <div className="space-y-2">
+                      {getTestHelpContent('kolmogorovSmirnov').howItWorks.map((step, idx) => (
+                        <div key={idx} className="poker-step-card flex items-start gap-2 text-xs rounded-md border bg-background p-2.5">
+                          <span className="font-semibold text-primary shrink-0">{step.title}</span>
+                          <span className="text-muted-foreground leading-relaxed">{step.content}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">CDF empírica vs CDF teórica</h5>
+                    <ResponsiveContainer width="100%" height={240}>
+                      <LineChart
+                        data={(() => {
+                          const d = ksResult.details as KSDetails;
+                          const n = d.n;
+                          return d.sortedValues.slice(0, 200).map((v, i) => ({
+                            i: i + 1,
+                            Empirica: (i + 1) / n,
+                            Teorica: v,
+                          }));
+                        })()}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="i" tick={{ fontSize: 10 }} />
+                        <YAxis domain={[0, 1]} tick={{ fontSize: 10 }} />
+                        <RechartsTooltip />
+                        <Line type="stepAfter" dataKey="Empirica" stroke="var(--color-chart-1)" dot={false} strokeWidth={1.5} />
+                        <Line type="monotone" dataKey="Teorica" stroke="var(--color-chart-2)" dot={false} strokeWidth={1.5} />
+                        <ReferenceLine y={0} stroke="#666" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">Detalle de desviaciones (primeros 20 valores)</h5>
+                    <div className="space-y-2">
+                      {(ksResult.details as KSDetails).sortedValues.slice(0, 20).map((v, i) => {
+                        const n = (ksResult.details as KSDetails).n;
+                        const dPlus = Math.max((i + 1) / n - v, 0);
+                        const dMinus = Math.max(v - i / n, 0);
+                        return (
+                          <div key={i} className="rounded-md border bg-background p-2.5 text-xs poker-contribution-row">
+                            <div className="font-medium mb-1">i = {i + 1}</div>
+                            <div className="grid grid-cols-4 gap-2 text-muted-foreground">
+                              <span>R(i): <span className="font-mono text-foreground">{v.toFixed(4)}</span></span>
+                              <span>i/n: <span className="font-mono text-foreground">{((i + 1) / n).toFixed(4)}</span></span>
+                              <span>D+: <span className="font-mono text-foreground">{dPlus.toFixed(4)}</span></span>
+                              <span>D-: <span className="font-mono text-foreground">{dMinus.toFixed(4)}</span></span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-2 poker-section-card">
+                    <h5 className="text-sm font-semibold">Consejos de interpretación</h5>
+                    <ul className="space-y-1">
+                      {getTestHelpContent('kolmogorovSmirnov').interpretationTips.map((tip, idx) => (
+                        <li key={idx} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                          <span className="text-primary mt-0.5">•</span>
+                          {tip}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {pokerResult && (
+            <Dialog open={isPokerModalOpen} onOpenChange={setIsPokerModalOpen}>
+              <DialogContent className="w-[95vw] max-w-[95vw] h-[92vh] p-0 gap-0 flex flex-col">
+                <DialogHeader className="px-6 py-4 border-b border-border poker-modal-header">
+                  <DialogTitle className="flex items-center gap-2">
+                    <span>Prueba de Póker: proceso completo</span>
+                    {pokerResult.pass ? (
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Aprobada
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive">
+                        <XCircle className="h-3 w-3 mr-1" /> Rechazada
+                      </Badge>
+                    )}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm">
+                    Se muestra cómo se forman manos de 5 dígitos, cómo se clasifican y cómo se construye el estadístico chi-cuadrada.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="flex-1 min-h-0 overflow-auto p-6 space-y-5 poker-modal-content">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">Estadístico χ²</span>
+                      <p className="font-mono font-semibold">{pokerResult.statistic}</p>
+                    </div>
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">Valor crítico</span>
+                      <p className="font-mono font-semibold">{pokerResult.criticalValue}</p>
+                    </div>
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">Manos totales</span>
+                      <p className="font-mono font-semibold">{fmt((pokerResult.details as PokerDetails).totalHands)}</p>
+                    </div>
+                    <div className="rounded-md border bg-muted/30 p-2.5 poker-summary-card">
+                      <span className="text-muted-foreground">Grados de libertad</span>
+                      <p className="font-mono font-semibold">{(pokerResult.details as PokerDetails).degreesOfFreedom}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">{getTestHelpContent('poker').whatItEvaluates.title}</h5>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {getTestHelpContent('poker').whatItEvaluates.content}
+                    </p>
+                    <div className="rounded-md bg-muted p-3">
+                      <p className="text-xs font-medium mb-1">{getTestHelpContent('poker').keyFormula.label}</p>
+                      <div className="flex items-center justify-center min-h-[32px]">
+                        <MathFormula tex={getTestHelpContent('poker').keyFormula.tex} />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {getTestHelpContent('poker').keyFormula.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">¿Cómo funciona?</h5>
+                    <div className="space-y-2">
+                      {getTestHelpContent('poker').howItWorks.map((step, idx) => (
+                        <div key={idx} className="poker-step-card flex items-start gap-2 text-xs rounded-md border bg-background p-2.5">
+                          <span className="font-semibold text-primary shrink-0">{step.title}</span>
+                          <span className="text-muted-foreground leading-relaxed">{step.content}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">Clasificación de manos (muestra)</h5>
+                    <p className="text-xs text-muted-foreground">
+                      Primeras {(pokerResult.details as PokerDetails).sampleHands.length} manos usadas para ejemplificar el proceso de detección de par, tercia, full, etc.
+                    </p>
+                    <PokerHandsCarousel sampleHands={(pokerResult.details as PokerDetails).sampleHands} />
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">Frecuencias observadas vs esperadas</h5>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <BarChart
+                        data={(pokerResult.details as PokerDetails).handCounts
+                          .filter((h) => h.observed > 0 || h.expected > 0.5)
+                          .map((h) => ({
+                            name: h.name.split(' (')[0],
+                            Observado: h.observed,
+                            Esperado: Math.round(h.expected * 100) / 100,
+                          }))}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} />
+                        <RechartsTooltip />
+                        <Bar dataKey="Observado" fill="var(--color-chart-1)" />
+                        <Bar dataKey="Esperado" fill="var(--color-chart-2)" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-3 poker-section-card">
+                    <h5 className="text-sm font-semibold">Aporte al estadístico χ² por categoría fusionada</h5>
+                    <div className="space-y-2">
+                      {(pokerResult.details as PokerDetails).mergedCategories.map((category) => (
+                        <div key={category.name} className="rounded-md border bg-background p-2.5 text-xs poker-contribution-row">
+                          <div className="font-medium mb-1">{category.name}</div>
+                          <div className="grid grid-cols-3 gap-2 text-muted-foreground">
+                            <span>Obs: <span className="font-mono text-foreground">{category.observed}</span></span>
+                            <span>Esp: <span className="font-mono text-foreground">{category.expected.toFixed(4)}</span></span>
+                            <span>Contrib: <span className="font-mono text-foreground">{category.contribution.toFixed(4)}</span></span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border p-4 space-y-2 poker-section-card">
+                    <h5 className="text-sm font-semibold">Consejos de interpretación</h5>
+                    <ul className="space-y-1">
+                      {getTestHelpContent('poker').interpretationTips.map((tip, idx) => (
+                        <li key={idx} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                          <span className="text-primary mt-0.5">•</span>
+                          {tip}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
         </>
       )}
     </div>

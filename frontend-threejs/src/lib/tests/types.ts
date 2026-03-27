@@ -29,9 +29,26 @@ export interface PokerHandCount {
   probability: number;
 }
 
+export interface PokerHandSample {
+  handIndex: number;
+  digits: number[];
+  frequencyPattern: number[];
+  categoryCode: string;
+  categoryName: string;
+}
+
+export interface PokerMergedCategory {
+  name: string;
+  observed: number;
+  expected: number;
+  contribution: number;
+}
+
 export interface PokerDetails {
   totalHands: number;
   handCounts: PokerHandCount[];
+  sampleHands: PokerHandSample[];
+  mergedCategories: PokerMergedCategory[];
   chiSquareStatistic: number;
   chiSquareCritical: number;
   degreesOfFreedom: number;
