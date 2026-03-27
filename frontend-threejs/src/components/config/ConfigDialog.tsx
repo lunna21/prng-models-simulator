@@ -13,6 +13,7 @@ import { GeneratorTab } from './GeneratorTab';
 import { CompareTab } from './CompareTab';
 import { SimulationTab } from './SimulationTab';
 import { EquationsTab } from './EquationsTab';
+import { ShortcutsTab } from './ShortcutsTab';
 
 export function ConfigDialog() {
   const configOpen = useStore((s) => s.configOpen);
@@ -63,6 +64,7 @@ export function ConfigDialog() {
             <TabsTrigger value="compare">Comparar</TabsTrigger>
             <TabsTrigger value="simulation">Simulacion</TabsTrigger>
             <TabsTrigger value="equations">Ecuaciones</TabsTrigger>
+            <TabsTrigger value="shortcuts">Atajos</TabsTrigger>
           </TabsList>
 
           <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -77,6 +79,9 @@ export function ConfigDialog() {
             </TabsContent>
             <TabsContent value="equations" className="mt-0">
               <EquationsTab />
+            </TabsContent>
+            <TabsContent value="shortcuts" className="mt-0">
+              <ShortcutsTab />
             </TabsContent>
           </div>
         </Tabs>

@@ -3,6 +3,7 @@ import { BankScene } from '@/components/scene/BankScene';
 import { ControlsPanel } from '@/components/controls/ControlsPanel';
 import { ConfigDialog } from '@/components/config/ConfigDialog';
 import { Button } from '@/components/ui/button';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { Sun, Moon } from 'lucide-react';
 
 function useTheme() {
@@ -28,6 +29,8 @@ function useTheme() {
 
 function App() {
   const [dark, toggleTheme] = useTheme();
+
+  useKeyboardShortcuts();
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-background">

@@ -1,7 +1,7 @@
 # Backlog de mejoras (pendiente)
 
 ## Identidad visual y navegación
-- [ ] Implementar una sección de **shortcuts (atajos de teclado)** para acelerar el uso de la herramienta.
+- [x] Implementar una sección de **shortcuts (atajos de teclado)** para acelerar el uso de la herramienta.
 - [ ] Crear un **tour guiado** con enfoque educativo usando **Driver.js**, asegurando que el diseño (tipografías, colores, espaciados, overlays y botones) quede totalmente alineado con el estilo visual actual de la app y sea responsive.
 
 ## Generador: mejoras funcionales y educativas
