@@ -71,6 +71,7 @@ export function ControlsPanel() {
           size="sm"
           onClick={() => setConfigOpen(true)}
           className="gap-1.5"
+          data-tour="config-button"
         >
           <Settings className="h-4 w-4" />
           Configurar
@@ -78,7 +79,7 @@ export function ControlsPanel() {
       </div>
 
       {/* Generator selector */}
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5" data-tour="generator-select">
         <label className="text-xs text-muted-foreground">Generador</label>
         <Select
           value={generatorType}
@@ -97,7 +98,7 @@ export function ControlsPanel() {
 
       {/* Simulation Controls */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" data-tour="playback-controls">
           <Button
             variant="outline"
             size="icon"
@@ -160,7 +161,7 @@ export function ControlsPanel() {
         )}
 
         {/* Speed control */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-tour="speed-slider">
           <span className="text-xs text-muted-foreground whitespace-nowrap">Velocidad</span>
           <Slider
             value={[playbackSpeed]}

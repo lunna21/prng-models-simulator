@@ -60,11 +60,11 @@ export function ConfigDialog() {
           className="flex-1 flex flex-col overflow-hidden"
         >
           <TabsList className="mx-6 mt-2 shrink-0 w-fit">
-            <TabsTrigger value="generator">Generador</TabsTrigger>
-            <TabsTrigger value="compare">Comparar</TabsTrigger>
-            <TabsTrigger value="simulation">Simulacion</TabsTrigger>
-            <TabsTrigger value="equations">Ecuaciones</TabsTrigger>
-            <TabsTrigger value="shortcuts">Atajos</TabsTrigger>
+            <TabsTrigger value="generator" data-tour="tab-generator">Generador</TabsTrigger>
+            <TabsTrigger value="compare" data-tour="tab-compare">Comparar</TabsTrigger>
+            <TabsTrigger value="simulation" data-tour="tab-simulation">Simulacion</TabsTrigger>
+            <TabsTrigger value="equations" data-tour="tab-equations">Ecuaciones</TabsTrigger>
+            <TabsTrigger value="shortcuts" data-tour="tab-shortcuts">Atajos</TabsTrigger>
           </TabsList>
 
           <div className="flex-1 overflow-y-auto px-6 py-4">
