@@ -1,7 +1,7 @@
 import { useStore } from '@/store/store';
 import { Button } from '@/components/ui/button';
+import { FormattedDecimalInput } from '@/components/ui/formatted-decimal-input';
 import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -117,15 +117,14 @@ export function SimulationTab() {
                       </TooltipContent>
                     </Tooltip>
                   </Label>
-                  <Input
-                    type="number"
-                    step="0.1"
+                  <FormattedDecimalInput
                     value={simConfig.arrivalRate}
-                    onChange={(e) =>
-                      setSimConfig({ arrivalRate: parseFloat(e.target.value) || 0.1 })
-                    }
+                    onChange={(v) => setSimConfig({ arrivalRate: v || 0.1 })}
                     min={0.01}
-                    className={simConfig.arrivalRate <= 0 ? 'border-destructive' : undefined}
+                    maxDecimals={2}
+                    placeholder="ej. 1.5"
+                    className={simConfig.arrivalRate <= 0 ? 'border-destructive focus-visible:ring-destructive' : undefined}
+                    aria-invalid={simConfig.arrivalRate <= 0}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -140,15 +139,14 @@ export function SimulationTab() {
                       </TooltipContent>
                     </Tooltip>
                   </Label>
-                  <Input
-                    type="number"
-                    step="0.1"
+                  <FormattedDecimalInput
                     value={simConfig.serviceRate}
-                    onChange={(e) =>
-                      setSimConfig({ serviceRate: parseFloat(e.target.value) || 0.1 })
-                    }
+                    onChange={(v) => setSimConfig({ serviceRate: v || 0.1 })}
                     min={0.01}
-                    className={simConfig.serviceRate <= 0 ? 'border-destructive' : undefined}
+                    maxDecimals={2}
+                    placeholder="ej. 2.0"
+                    className={simConfig.serviceRate <= 0 ? 'border-destructive focus-visible:ring-destructive' : undefined}
+                    aria-invalid={simConfig.serviceRate <= 0}
                   />
                 </div>
               </div>
