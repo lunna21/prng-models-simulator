@@ -1,5 +1,3 @@
-
-
 import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -57,11 +55,7 @@ function MonitorScreen() {
   return (
     <>
       {Array.from({ length: lineCount }).map((_, i) => (
-        <mesh
-          key={i}
-          position={[0, 0.06 - i * 0.03, 0]}
-          castShadow={false}
-        >
+        <mesh key={i} position={[0, 0.06 - i * 0.03, 0]} castShadow={false}>
           <boxGeometry args={[0.28, 0.008, 0.01]} />
           <meshPhysicalMaterial
             color="#00FF88"
@@ -112,28 +106,28 @@ function StarBurst({
 }
 
 function OperatorCabin({ position, busy }: OperatorCabinProps) {
-  const groupRef      = useRef<THREE.Group>(null);
-  const operatorRef   = useRef<THREE.Group>(null);
-  const bodyMeshRef   = useRef<THREE.Mesh>(null);       // NEW: squash & stretch
-  const headGroupRef  = useRef<THREE.Group>(null);      // NEW: head look
-  const leftArmRef    = useRef<THREE.Group>(null);
-  const rightArmRef   = useRef<THREE.Group>(null);
-  const leftAntennaRef  = useRef<THREE.Group>(null);
+  const groupRef = useRef<THREE.Group>(null);
+  const operatorRef = useRef<THREE.Group>(null);
+  const bodyMeshRef = useRef<THREE.Mesh>(null); // NEW: squash & stretch
+  const headGroupRef = useRef<THREE.Group>(null); // NEW: head look
+  const leftArmRef = useRef<THREE.Group>(null);
+  const rightArmRef = useRef<THREE.Group>(null);
+  const leftAntennaRef = useRef<THREE.Group>(null);
   const rightAntennaRef = useRef<THREE.Group>(null);
-  const heartRef      = useRef<THREE.Group>(null);
-  const monitorGlowRef = useRef<THREE.Mesh>(null);      // NEW: monitor pulse
-  const burstGroupRef = useRef<THREE.Group>(null);      // NEW: joy-burst stars
+  const heartRef = useRef<THREE.Group>(null);
+  const monitorGlowRef = useRef<THREE.Mesh>(null); // NEW: monitor pulse
+  const burstGroupRef = useRef<THREE.Group>(null); // NEW: joy-burst stars
 
   // ── Transition tracking ────────────────────────────────────────────────────
   // OPERATOR_BASE_Y: the resting local-y of operatorRef within the main group.
   // MUST match the JSX position prop below so useFrame never stomps on it.
-  const OPERATOR_BASE_Y  = 1.22;
-  const prevBusyRef      = useRef<boolean>(busy);
-  const transitionTRef   = useRef<number>(-999);
-  const squashPhaseRef   = useRef<number>(0);   // 0=none, active>0
-  const squashTimerRef   = useRef<number>(0);
-  const jumpOffsetRef    = useRef<number>(0);   // extra y offset during joy-jump
-  const isBecameBusyRef  = useRef<boolean>(false); // persists across frames
+  const OPERATOR_BASE_Y = 1.22;
+  const prevBusyRef = useRef<boolean>(busy);
+  const transitionTRef = useRef<number>(-999);
+  const squashPhaseRef = useRef<number>(0); // 0=none, active>0
+  const squashTimerRef = useRef<number>(0);
+  const jumpOffsetRef = useRef<number>(0); // extra y offset during joy-jump
+  const isBecameBusyRef = useRef<boolean>(false); // persists across frames
 
   const bobOffset = useMemo(() => Math.random() * Math.PI * 2, []);
 
@@ -147,7 +141,7 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
       transitionTRef.current = t;
       squashPhaseRef.current = 1;
       squashTimerRef.current = 0;
-      jumpOffsetRef.current  = 0;
+      jumpOffsetRef.current = 0;
       isBecameBusyRef.current = justBecameBusy; // persist for whole animation
       prevBusyRef.current = busy;
     }
@@ -170,25 +164,27 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
       squashTimerRef.current += 1 / 60;
       const dt = squashTimerRef.current;
 
-      let sy = 1, sxz = 1;
+      let sy = 1,
+        sxz = 1;
       if (dt < 0.08) {
         const p = dt / 0.08;
-        sy  = THREE.MathUtils.lerp(1, 0.78, p);
+        sy = THREE.MathUtils.lerp(1, 0.78, p);
         sxz = THREE.MathUtils.lerp(1, 1.22, p);
       } else if (dt < 0.18) {
-        const p = (dt - 0.08) / 0.10;
-        sy  = THREE.MathUtils.lerp(0.78, 1.28, p);
+        const p = (dt - 0.08) / 0.1;
+        sy = THREE.MathUtils.lerp(0.78, 1.28, p);
         sxz = THREE.MathUtils.lerp(1.22, 0.84, p);
       } else if (dt < 0.38) {
-        const p = (dt - 0.18) / 0.20;
+        const p = (dt - 0.18) / 0.2;
         const elastic = 1 + Math.sin(p * Math.PI * 2.5) * 0.055 * (1 - p);
-        sy  = elastic;
+        sy = elastic;
         sxz = 1 + (1 - elastic) * 0.4; // mild counter-axis
       } else {
-        sy = 1; sxz = 1;
-        squashPhaseRef.current  = 0;
+        sy = 1;
+        sxz = 1;
+        squashPhaseRef.current = 0;
         isBecameBusyRef.current = false;
-        jumpOffsetRef.current   = 0;
+        jumpOffsetRef.current = 0;
       }
 
       operatorRef.current.scale.set(sxz, sy, sxz);
@@ -204,7 +200,8 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
       }
 
       // Always base on OPERATOR_BASE_Y — never set to 0!
-      operatorRef.current.position.y = OPERATOR_BASE_Y + pivotCompensation + jumpOffsetRef.current;
+      operatorRef.current.position.y =
+        OPERATOR_BASE_Y + pivotCompensation + jumpOffsetRef.current;
     } else if (operatorRef.current) {
       // Ensure scale and position are clean when no animation is running
       operatorRef.current.scale.set(1, 1, 1);
@@ -233,7 +230,7 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
       operatorRef.current.rotation.x = THREE.MathUtils.lerp(
         operatorRef.current.rotation.x,
         targetRotX,
-        0.1
+        0.1,
       );
       const sway = Math.sin(t * (busy ? 4 : 1.5)) * (busy ? 0.04 : 0.02);
       operatorRef.current.rotation.z = sway;
@@ -247,25 +244,25 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
         headGroupRef.current.rotation.y = THREE.MathUtils.lerp(
           headGroupRef.current.rotation.y,
           lookAngle,
-          0.04
+          0.04,
         );
         // Slight nod
         headGroupRef.current.rotation.x = THREE.MathUtils.lerp(
           headGroupRef.current.rotation.x,
           Math.sin(t * 0.4) * 0.05,
-          0.05
+          0.05,
         );
       } else {
         // Snap forward when busy
         headGroupRef.current.rotation.y = THREE.MathUtils.lerp(
           headGroupRef.current.rotation.y,
           0,
-          0.12
+          0.12,
         );
         headGroupRef.current.rotation.x = THREE.MathUtils.lerp(
           headGroupRef.current.rotation.x,
           0,
-          0.12
+          0.12,
         );
       }
     }
@@ -275,10 +272,10 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
       if (busy) {
         // Whiplash: atan-shaped pulse instead of constant sine
         const lash = Math.atan(Math.sin(t * 15) * 4) * 0.12;
-        leftAntennaRef.current.rotation.z  =  lash;
+        leftAntennaRef.current.rotation.z = lash;
         rightAntennaRef.current.rotation.z = -lash;
       } else {
-        leftAntennaRef.current.rotation.z  =  Math.sin(t * 4) * 0.05;
+        leftAntennaRef.current.rotation.z = Math.sin(t * 4) * 0.05;
         rightAntennaRef.current.rotation.z = -Math.sin(t * 4) * 0.05;
       }
     }
@@ -320,22 +317,22 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
     if (monitorGlowRef.current) {
       const mat = monitorGlowRef.current.material as THREE.MeshPhysicalMaterial;
       mat.emissiveIntensity = busy
-        ? 0.6 + Math.sin(t * 6) * 0.3        // flickery when busy
-        : 0.25 + Math.sin(t * 1.2) * 0.1;    // gentle idle pulse
+        ? 0.6 + Math.sin(t * 6) * 0.3 // flickery when busy
+        : 0.25 + Math.sin(t * 1.2) * 0.1; // gentle idle pulse
     }
   });
 
   const statusColor = busy ? "#FF6B9D" : "#2ECC71";
 
   const counterBase = "#C0AED8";
-  const counterRim  = "#E8C87A";
-  const bodyBlue    = "#6FCBFF";
-  const coatBlue    = "#4A90D9";
-  const hatColor    = "#5479D8";
-  const collarPurp  = "#9B7FC8";
+  const counterRim = "#E8C87A";
+  const bodyBlue = "#6FCBFF";
+  const coatBlue = "#4A90D9";
+  const hatColor = "#5479D8";
+  const collarPurp = "#9B7FC8";
   const antennaBlue = "#5AAEE8";
-  const heartPink   = "#FF6B9D";
-  const starYellow  = "#FFD93D";
+  const heartPink = "#FF6B9D";
+  const starYellow = "#FFD93D";
   const screenGreen = "#00FF88";
 
   return (
@@ -394,7 +391,7 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
         <sphereGeometry args={[0.08, 16, 16]} />
         {plasticMaterial(heartPink, 0.3, 0.7)}
       </mesh>
-      <mesh position={[-0.30, 2.52, -0.62]} scale={[1.1, 1.0, 0.4]} castShadow>
+      <mesh position={[-0.3, 2.52, -0.62]} scale={[1.1, 1.0, 0.4]} castShadow>
         <sphereGeometry args={[0.08, 16, 16]} />
         {plasticMaterial(heartPink, 0.3, 0.7)}
       </mesh>
@@ -482,16 +479,53 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
           {/* ── Joy-burst star explosion (hidden by default) ───────────── */}
           <group ref={burstGroupRef} visible={false} position={[0, 0.5, 0]}>
             {[
-              { p: [ 0.22,  0.18,  0.05] as [number,number,number], s: 1.4, c: starYellow },
-              { p: [-0.20,  0.22, -0.04] as [number,number,number], s: 1.1, c: "#FF9F43" },
-              { p: [ 0.06,  0.28,  0.18] as [number,number,number], s: 1.2, c: starYellow },
-              { p: [-0.14,  0.10,  0.22] as [number,number,number], s: 0.9, c: heartPink  },
-              { p: [ 0.18, -0.05,  0.20] as [number,number,number], s: 1.0, c: "#FF9F43" },
-              { p: [-0.22,  0.04,  0.14] as [number,number,number], s: 1.3, c: starYellow },
-              { p: [ 0.0,   0.30, -0.12] as [number,number,number], s: 1.0, c: heartPink  },
-              { p: [ 0.24,  0.14, -0.10] as [number,number,number], s: 0.8, c: "#FFFACD"  },
+              {
+                p: [0.22, 0.18, 0.05] as [number, number, number],
+                s: 1.4,
+                c: starYellow,
+              },
+              {
+                p: [-0.2, 0.22, -0.04] as [number, number, number],
+                s: 1.1,
+                c: "#FF9F43",
+              },
+              {
+                p: [0.06, 0.28, 0.18] as [number, number, number],
+                s: 1.2,
+                c: starYellow,
+              },
+              {
+                p: [-0.14, 0.1, 0.22] as [number, number, number],
+                s: 0.9,
+                c: heartPink,
+              },
+              {
+                p: [0.18, -0.05, 0.2] as [number, number, number],
+                s: 1.0,
+                c: "#FF9F43",
+              },
+              {
+                p: [-0.22, 0.04, 0.14] as [number, number, number],
+                s: 1.3,
+                c: starYellow,
+              },
+              {
+                p: [0.0, 0.3, -0.12] as [number, number, number],
+                s: 1.0,
+                c: heartPink,
+              },
+              {
+                p: [0.24, 0.14, -0.1] as [number, number, number],
+                s: 0.8,
+                c: "#FFFACD",
+              },
             ].map((star, i) => (
-              <StarBurst key={i} position={star.p} scale={star.s} color={star.c} />
+              <StarBurst
+                key={i}
+                position={star.p}
+                scale={star.s}
+                color={star.c}
+              />
             ))}
           </group>
         </group>
@@ -531,7 +565,11 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
             <sphereGeometry args={[0.09, 16, 16]} />
             {plasticMaterial(heartPink, 0.28, 0.88)}
           </mesh>
-          <mesh position={[0, -0.03, 0]} rotation={[0, 0, Math.PI / 4]} castShadow>
+          <mesh
+            position={[0, -0.03, 0]}
+            rotation={[0, 0, Math.PI / 4]}
+            castShadow
+          >
             <boxGeometry args={[0.115, 0.115, 0.06]} />
             {plasticMaterial(heartPink, 0.28, 0.88)}
           </mesh>
@@ -550,7 +588,11 @@ function OperatorCabin({ position, busy }: OperatorCabinProps) {
           <tetrahedronGeometry args={[0.055, 0]} />
           {plasticMaterial(starYellow, 0.32, 0.75)}
         </mesh>
-        <mesh position={[0.42, 0.08, 0.36]} rotation={[0.2, 0.1, 0.5]} castShadow>
+        <mesh
+          position={[0.42, 0.08, 0.36]}
+          rotation={[0.2, 0.1, 0.5]}
+          castShadow
+        >
           <tetrahedronGeometry args={[0.045, 0]} />
           {plasticMaterial(starYellow, 0.32, 0.75)}
         </mesh>

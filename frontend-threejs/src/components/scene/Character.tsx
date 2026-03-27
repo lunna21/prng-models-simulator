@@ -15,28 +15,28 @@ interface CharacterProps {
 
 const COLORS = {
   oval: {
-    body: "#5BB8F5",     // soft sky blue
-    arms: "#FF9A5C",     // warm orange
-    legs: "#FFD95A",     // sunny yellow
-    shoes: "#FFF0A0",    // pale yellow shoe tip
-    center: "#FF6BAE",   // pink badge
-    antenna: "#9B7FE8",  // soft purple tip
+    body: "#5BB8F5", // soft sky blue
+    arms: "#FF9A5C", // warm orange
+    legs: "#FFD95A", // sunny yellow
+    shoes: "#FFF0A0", // pale yellow shoe tip
+    center: "#FF6BAE", // pink badge
+    antenna: "#9B7FE8", // soft purple tip
   },
   sphere: {
-    body: "#FF7EB3",     // bubblegum pink
-    arms: "#A673E8",     // purple
-    legs: "#A673E8",     // purple
-    shoes: "#C9ACFF",    // pale purple shoe tip
-    center: "#5BCEF5",   // cyan badge
-    antenna: "#FFD95A",  // yellow (not used on sphere but kept for parity)
+    body: "#FF7EB3", // bubblegum pink
+    arms: "#A673E8", // purple
+    legs: "#A673E8", // purple
+    shoes: "#C9ACFF", // pale purple shoe tip
+    center: "#5BCEF5", // cyan badge
+    antenna: "#FFD95A", // yellow (not used on sphere but kept for parity)
   },
   capsule: {
-    body: "#52D68A",     // mint green
-    arms: "#FF9A5C",     // orange
-    legs: "#FFD95A",     // yellow
-    shoes: "#FFF0A0",    // pale yellow shoe tip
-    center: "#FF6BAE",   // pink badge
-    antenna: "#9B7FE8",  // purple (not used on capsule)
+    body: "#52D68A", // mint green
+    arms: "#FF9A5C", // orange
+    legs: "#FFD95A", // yellow
+    shoes: "#FFF0A0", // pale yellow shoe tip
+    center: "#FF6BAE", // pink badge
+    antenna: "#9B7FE8", // purple (not used on capsule)
   },
 };
 
@@ -103,11 +103,11 @@ function OvalCharacter() {
         {plasticMat(c.legs)}
       </mesh>
       {/* Rounded boots */}
-      <mesh position={[-0.22, -0.02, 0.06]} scale={[1.1, 0.7, 1.3]} castShadow>
+      <mesh position={[-0.22, -0.02, -0.06]} scale={[1.1, 0.7, 1.3]} castShadow>
         <sphereGeometry args={[0.12, 16, 16]} />
         {plasticMat(c.shoes)}
       </mesh>
-      <mesh position={[0.22, -0.02, 0.06]} scale={[1.1, 0.7, 1.3]} castShadow>
+      <mesh position={[0.22, -0.02, -0.06]} scale={[1.1, 0.7, 1.3]} castShadow>
         <sphereGeometry args={[0.12, 16, 16]} />
         {plasticMat(c.shoes)}
       </mesh>
@@ -152,11 +152,15 @@ function SphereCharacter() {
         {plasticMat(c.legs)}
       </mesh>
       {/* Boots */}
-      <mesh position={[-0.14, -0.04, 0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
+      <mesh
+        position={[-0.14, -0.04, -0.05]}
+        scale={[1.0, 0.65, 1.2]}
+        castShadow
+      >
         <sphereGeometry args={[0.11, 14, 14]} />
         {plasticMat(c.shoes)}
       </mesh>
-      <mesh position={[0.14, -0.04, 0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
+      <mesh position={[0.14, -0.04, -0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
         <sphereGeometry args={[0.11, 14, 14]} />
         {plasticMat(c.shoes)}
       </mesh>
@@ -201,11 +205,15 @@ function CapsuleCharacter() {
         {plasticMat(c.legs)}
       </mesh>
       {/* Boots */}
-      <mesh position={[-0.15, -0.04, 0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
+      <mesh
+        position={[-0.15, -0.04, -0.05]}
+        scale={[1.0, 0.65, 1.2]}
+        castShadow
+      >
         <sphereGeometry args={[0.11, 14, 14]} />
         {plasticMat(c.shoes)}
       </mesh>
-      <mesh position={[0.15, -0.04, 0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
+      <mesh position={[0.15, -0.04, -0.05]} scale={[1.0, 0.65, 1.2]} castShadow>
         <sphereGeometry args={[0.11, 14, 14]} />
         {plasticMat(c.shoes)}
       </mesh>
@@ -233,7 +241,8 @@ export function Character({
   const currentPos = useRef(new THREE.Vector3(...position));
 
   // per-character animation offset so they don't all move in sync
-  const offset = queueIndex * 1.3 + (type === "oval" ? 0 : type === "sphere" ? 2.1 : 4.4);
+  const offset =
+    queueIndex * 1.3 + (type === "oval" ? 0 : type === "sphere" ? 2.1 : 4.4);
 
   useFrame((_, delta) => {
     if (!groupRef.current || !bodyRef.current) return;
@@ -261,14 +270,12 @@ export function Character({
       // tiny weight-shift (scale asymmetry)
       const squish = 1 + Math.sin(t * 1.6) * 0.012;
       bodyRef.current.scale.set(squish, 2 - squish + 0.006, squish);
-
     } else if (state === "arriving") {
       // hop in from the side
       const hopBounce = Math.abs(Math.sin(t * 4)) * 0.08;
       groupRef.current.position.y += hopBounce;
       bodyRef.current.rotation.z = Math.sin(t * 4) * 0.06;
       bodyRef.current.scale.set(1, 1, 1);
-
     } else if (state === "serving") {
       // happy wiggle at the front of the queue
       const wiggle = Math.sin(t * 3.2) * 0.05;
@@ -276,14 +283,12 @@ export function Character({
       const jump = Math.abs(Math.sin(t * 2.4)) * 0.03;
       groupRef.current.position.y += jump;
       bodyRef.current.scale.set(1, 1, 1);
-
     } else if (state === "departing") {
       // lean forward as they walk away
       bodyRef.current.rotation.x = -0.18;
       const stepBounce = Math.abs(Math.sin(t * 5)) * 0.05;
       groupRef.current.position.y += stepBounce;
       bodyRef.current.scale.set(1, 1, 1);
-
     } else {
       bodyRef.current.rotation.set(0, 0, 0);
       bodyRef.current.scale.set(1, 1, 1);
@@ -292,18 +297,20 @@ export function Character({
 
   const renderCharacter = () => {
     switch (type) {
-      case "oval":    return <OvalCharacter />;
-      case "sphere":  return <SphereCharacter />;
-      case "capsule": return <CapsuleCharacter />;
-      default:        return <OvalCharacter />;
+      case "oval":
+        return <OvalCharacter />;
+      case "sphere":
+        return <SphereCharacter />;
+      case "capsule":
+        return <CapsuleCharacter />;
+      default:
+        return <OvalCharacter />;
     }
   };
 
   return (
     <group ref={groupRef} position={position}>
-      <group ref={bodyRef}>
-        {renderCharacter()}
-      </group>
+      <group ref={bodyRef}>{renderCharacter()}</group>
     </group>
   );
 }
