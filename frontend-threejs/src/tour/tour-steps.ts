@@ -19,19 +19,7 @@ export function getTourSteps(cb: TourCallbacks): DriveStep[] {
       },
     },
 
-    // 1 — Escena 3D
-    {
-      element: '[data-tour="scene"]',
-      popover: {
-        title: 'Escena 3D del Banco',
-        description:
-          'Aquí se visualiza la simulación: los <strong>clientes</strong> (figuras de colores) llegan, hacen fila, son atendidos y se retiran. Usa el <strong>mouse</strong> para rotar, hacer zoom y mover la cámara. Los colores indican el estado: <span style="color:#f59e0b">ámbar</span> = esperando, <span style="color:#3b82f6">azul</span> = siendo atendido, <span style="color:#22c55e">verde</span> = saliendo.',
-        side: 'over',
-        align: 'center',
-      },
-    },
-
-    // 2 — Selector de generador
+    // 1 — Selector de generador
     {
       element: '[data-tour="generator-select"]',
       popover: {
