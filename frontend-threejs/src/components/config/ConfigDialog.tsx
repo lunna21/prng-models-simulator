@@ -34,8 +34,8 @@ export function ConfigDialog() {
               size="icon"
               className="h-8 w-8 -ml-2"
               onClick={toggleDialogViewMode}
-              aria-label={isExpanded ? 'Restaurar tamano del dialogo' : 'Expandir dialogo'}
-              title={isExpanded ? 'Restaurar tamano' : 'Expandir a toda la pantalla'}
+              aria-label={isExpanded ? 'Restaurar tamaño del diálogo' : 'Expandir diálogo'}
+              title={isExpanded ? 'Restaurar tamaño' : 'Expandir a toda la pantalla'}
             >
               <span className="relative h-4 w-4">
                 <Maximize2
@@ -50,7 +50,7 @@ export function ConfigDialog() {
                 />
               </span>
             </Button>
-            <DialogTitle className="text-lg">Configuracion del Simulador</DialogTitle>
+            <DialogTitle className="text-lg">Configuración del Simulador</DialogTitle>
           </div>
         </DialogHeader>
 
@@ -62,7 +62,7 @@ export function ConfigDialog() {
           <TabsList className="mx-6 mt-2 shrink-0 w-fit">
             <TabsTrigger value="generator" data-tour="tab-generator">Generador</TabsTrigger>
             <TabsTrigger value="compare" data-tour="tab-compare">Comparar</TabsTrigger>
-            <TabsTrigger value="simulation" data-tour="tab-simulation">Simulacion</TabsTrigger>
+            <TabsTrigger value="simulation" data-tour="tab-simulation">Simulación</TabsTrigger>
             <TabsTrigger value="equations" data-tour="tab-equations">Ecuaciones</TabsTrigger>
             <TabsTrigger value="shortcuts" data-tour="tab-shortcuts">Atajos</TabsTrigger>
           </TabsList>

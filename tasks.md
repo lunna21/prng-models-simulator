@@ -1,6 +1,6 @@
 ## PRNG Bank Queue Simulator — Build Prompt
 
-**Reference file:** `Aguirre_Diego_Sosa_Lunna_Modelos de Simulación.xlsx - Mo.CuadMed.csv` — contains the reference implementations and expected behavior for all three generators and statistical tests. Consult it for formulas, parameters, and validation data.
+**Reference file:** Proyecto de referencia de modelos de simulación — contains the reference implementations and expected behavior for all three generators and statistical tests. Consult it for formulas, parameters, and validation data.
 
 **Stack:** React + Three.js (3D visualization) + shadcn/ui (components)
 
@@ -39,7 +39,7 @@ FIFO queue simulation driven by PRNG output:
 - Configurable: number of servers, arrival rate λ, service rate μ, customer count
 - Track per customer: arrival, wait, service start, service end, departure
 - Support step-by-step (forward/back/jump) and auto-run with speed control
-- Output table must match reference CSV format
+- Output table must keep this structure (in order): Cliente, R Llegada, T. Llegada, Llegada, Espera, Inicio Serv., R Servicio, T. Servicio, Fin Serv., Servidor
 
 ---
 

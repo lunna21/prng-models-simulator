@@ -223,3 +223,58 @@
 .formula-content {
   animation: formula-content-expand 0.35s ease-out both;
 }
+
+@keyframes test-expand {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+    transform: translateY(0);
+  }
+}
+
+@keyframes step-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-highlight {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: oklch(0.95 0.05 250);
+  }
+}
+
+.test-content {
+  animation: test-expand 0.4s ease-out both;
+}
+
+.test-step {
+  animation: step-fade-in 0.3s ease-out both;
+}
+
+.test-step:nth-child(1) { animation-delay: 0.05s; }
+.test-step:nth-child(2) { animation-delay: 0.1s; }
+.test-step:nth-child(3) { animation-delay: 0.15s; }
+.test-step:nth-child(4) { animation-delay: 0.2s; }
+.test-step:nth-child(5) { animation-delay: 0.25s; }
+
+.dark .test-step:nth-child(1),
+.dark .test-step:nth-child(2),
+.dark .test-step:nth-child(3),
+.dark .test-step:nth-child(4),
+.dark .test-step:nth-child(5) {
+  animation-delay: 0.05s;
+}

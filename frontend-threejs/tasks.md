@@ -19,38 +19,38 @@
   - [x] interpretación de resultados
 
 ## Inputs, validaciones y feedback
-- [ ] Mejorar UI/UX de inputs (estilo, consistencia y legibilidad).
-- [ ] Formatear valores numéricos con **separador de miles**.
-- [ ] Agregar **tooltips explicativos** en cada input con:
-  - [ ] restricciones y guía de uso (ej. "solo enteros", rangos válidos)
-  - [ ] un enunciado teórico **muy breve** del significado del parámetro
-- [ ] Implementar librería de **toasts** para notificaciones.
-- [ ] Mostrar **errores de validación** mediante toasts.
+- [x] Mejorar UI/UX de inputs (estilo, consistencia y legibilidad).
+- [x] Formatear valores numéricos con **separador de miles**.
+- [x] Agregar **tooltips explicativos** en cada input con:
+  - [x] restricciones y guía de uso (ej. "solo enteros", rangos válidos)
+  - [x] un enunciado teórico **muy breve** del significado del parámetro
+- [x] Implementar librería de **toasts** para notificaciones.
+- [x] Mostrar **errores de validación** mediante toasts.
 
 ## Generador de cuadrados medios: robustez
-- [ ] Revisar y mejorar los algoritmos; detectar y corregir falencias, especialmente en **Cuadrados Medios**.
-- [ ] Mejorar la tabla de resultados de Cuadrados Medios para mostrar explícitamente:
-  - [ ] datos de la izquierda
-  - [ ] datos de la derecha
-  - [ ] datos de la mitad
-- [ ] En parámetros del generador de Cuadrados Medios, manejar **D** con:
-  - [ ] valor por defecto: `4`
-  - [ ] opción para que el usuario lo modifique
-  - [ ] validación: `n >= 4`
-  - [ ] validación: `n` debe ser par
-- [ ] Mostrar mensaje educativo cuando la semilla sea **degenerada** (ej. converge a 0), explicando por qué ocurre la degeneración.
+- [x] Revisar y mejorar los algoritmos; detectar y corregir falencias, especialmente en **Cuadrados Medios**.
+- [x] Mejorar la tabla de resultados de Cuadrados Medios para mostrar explícitamente:
+  - [x] datos de la izquierda
+  - [x] datos de la derecha
+  - [x] datos de la mitad
+- [x] En parámetros del generador de Cuadrados Medios, manejar **D** con:
+  - [x] valor por defecto: `4`
+  - [x] opción para que el usuario lo modifique
+  - [x] validación: `n >= 4`
+  - [x] validación: `n` debe ser par
+- [x] Mostrar mensaje educativo cuando la semilla sea **degenerada** (ej. converge a 0), explicando por qué ocurre la degeneración.
 
 ## Visualización de resultados y pruebas estadísticas
-- [ ] Mejorar UI de la tabla de resultados en el tab **Generador**.
-- [ ] Mejorar sección de **pruebas estadísticas** para que cada prueba pueda expandir su gráfica.
-- [ ] Al expandir una prueba estadística, incluir explicación educativa:
-  - [ ] qué evalúa la prueba
-  - [ ] cómo se realiza
-  - [ ] apoyo con animaciones explicativas
-- [ ] En el card **Secuencia Generada**, agregar explicación de la gráfica debajo del chart.
-- [ ] En la gráfica de **Secuencia Generada**, agregar líneas verticales explicativas para indicar período o repetición de valores.
+- [x] Mejorar UI de la tabla de resultados en el tab **Generador**.
+- [x] Mejorar sección de **pruebas estadísticas** para que cada prueba pueda expandir su gráfica.
+- [x] Al expandir una prueba estadística, incluir explicación educativa:
+  - [x] qué evalúa la prueba
+  - [x] cómo se realiza
+  - [x] apoyo con animaciones explicativas
+- [x] En el card **Secuencia Generada**, agregar explicación de la gráfica debajo del chart. Ademas agregar tambien la funcionalidad de expancion de esta grafica.
+- [x] En la gráfica de **Secuencia Generada**, agregar líneas verticales explicativas para indicar período o repetición de valores.
 
 ## Tab Comparar
-- [ ] En el tab **Comparar**, agregar inputs para parámetros necesarios de los distintos generadores.
-- [ ] En tab **Comparar**, después de resultados de comparación, agregar una tabla con solo el valor **Ri** de cada modelo.
-- [ ] En tab **Comparar**, permitir visualizar también la **gráfica de la prueba** (igual que en el tab Generador), para facilitar el análisis visual entre modelos.
+- [x] En el tab **Comparar**, agregar inputs para parámetros necesarios de los distintos generadores.
+- [x] En tab **Comparar**, después de resultados de comparación, agregar una tabla con solo el valor **Ri** de cada modelo.
+- [x] En tab **Comparar**, permitir visualizar también la **gráfica de la prueba** (igual que en el tab Generador), para facilitar el análisis visual entre modelos.

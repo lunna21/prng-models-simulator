@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,12 +21,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { lcg, mcg, middleSquare } from '@/lib/generators';
 import type { GeneratorResult } from '@/lib/generators/types';
 import { chiSquareTest, ksTest, pokerTest } from '@/lib/tests';
 import type { TestResult } from '@/lib/tests/types';
 import type { ChiSquareDetails, KSDetails, PokerDetails } from '@/lib/tests/types';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, Maximize2, XCircle } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -47,54 +49,126 @@ interface CompareEntry {
   poker: TestResult | null;
 }
 
+interface LCGConfig {
+  seed: number;
+  a: number;
+  c: number;
+  m: number;
+  count: number;
+}
+
+interface MCGConfig {
+  seed: number;
+  a: number;
+  m: number;
+  count: number;
+}
+
+interface MSConfig {
+  seed: number;
+  iterations: number;
+}
+
 export function CompareTab() {
-  const [seed, setSeed] = useState(7);
-  const [count, setCount] = useState(1000);
+  const [lcgConfig, setLcgConfig] = useState<LCGConfig>({
+    seed: 7,
+    a: 1664525,
+    c: 1013904223,
+    m: 4294967296,
+    count: 1000,
+  });
+
+  const [mcgConfig, setMcgConfig] = useState<MCGConfig>({
+    seed: 7,
+    a: 16807,
+    m: 2147483647,
+    count: 1000,
+  });
+
+  const [msConfig, setMsConfig] = useState<MSConfig>({
+    seed: 1234,
+    iterations: 1000,
+  });
+
   const [comparison, setComparison] = useState<CompareEntry[] | null>(null);
   const [activeChartTab, setActiveChartTab] = useState<'chi' | 'ks' | 'poker'>('chi');
   const [expandedChart, setExpandedChart] = useState<{ test: 'chi' | 'ks' | 'poker'; generator: string; entry: CompareEntry } | null>(null);
 
+  const comparisonColumns = [
+    {
+      label: 'Prueba',
+      tip: 'Prueba estadística aplicada para evaluar la calidad de la secuencia.',
+      className: 'w-48',
+    },
+  ];
+
+  const riColumns = [
+    { label: 'i', tip: 'Índice de la observación dentro de la secuencia.', className: 'w-16' },
+    { label: 'Ri LCG', tip: 'Valor normalizado generado por el método LCG.', className: 'text-center' },
+    { label: 'Ri MCG', tip: 'Valor normalizado generado por el método MCG.', className: 'text-center' },
+    {
+      label: 'Ri C. Medios',
+      tip: 'Valor normalizado generado por el método de Cuadrados Medios.',
+      className: 'text-center',
+    },
+  ];
+
   const handleCompare = () => {
     try {
-      setError(null);
       const entries: CompareEntry[] = [];
 
-      // LCG
-      const lcgResult = lcg.generate({ seed, a: 1664525, c: 1013904223, m: Math.pow(2, 32), count });
+      const lcgResult = lcg.generate({
+        seed: lcgConfig.seed,
+        a: lcgConfig.a,
+        c: lcgConfig.c,
+        m: lcgConfig.m,
+        count: lcgConfig.count,
+      });
       entries.push({
         name: 'LCG',
         result: lcgResult,
         chi: chiSquareTest(lcgResult.normalized),
         ks: ksTest(lcgResult.normalized),
-        poker: count >= 5 ? pokerTest(lcgResult.normalized) : null,
+        poker: lcgConfig.count >= 5 ? pokerTest(lcgResult.normalized) : null,
       });
 
-      // MCG
-      const mcgSeed = seed === 0 ? 1 : seed;
-      const mcgResult = mcg.generate({ seed: mcgSeed, a: 16807, m: 2147483647, count });
+      const mcgSeed = mcgConfig.seed === 0 ? 1 : mcgConfig.seed;
+      const mcgResult = mcg.generate({
+        seed: mcgSeed,
+        a: mcgConfig.a,
+        m: mcgConfig.m,
+        count: mcgConfig.count,
+      });
       entries.push({
         name: 'MCG',
         result: mcgResult,
         chi: chiSquareTest(mcgResult.normalized),
         ks: ksTest(mcgResult.normalized),
-        poker: count >= 5 ? pokerTest(mcgResult.normalized) : null,
+        poker: mcgConfig.count >= 5 ? pokerTest(mcgResult.normalized) : null,
       });
 
-      // Middle-Square
-      const msSeed = Math.max(seed, 10); // at least 2 digits
-      const msResult = middleSquare.generate({ seed: msSeed, iterations: count });
+      const msSeed = Math.max(msConfig.seed, 10);
+      const msResult = middleSquare.generate({
+        seed: msSeed,
+        iterations: msConfig.iterations,
+        d: 4,
+      });
       entries.push({
         name: 'Cuadrados Medios',
         result: msResult,
         chi: chiSquareTest(msResult.normalized),
         ks: ksTest(msResult.normalized),
-        poker: count >= 5 ? pokerTest(msResult.normalized) : null,
+        poker: msConfig.iterations >= 5 ? pokerTest(msResult.normalized) : null,
       });
 
       setComparison(entries);
+      toast.success('Comparación completada', {
+        description: '3 generadores evaluados con pruebas estadísticas.',
+      });
     } catch (e) {
-      setError((e as Error).message);
+      const msg = (e as Error).message;
       setComparison(null);
+      toast.error('Error en comparación', { description: msg });
     }
   };
 
@@ -109,6 +183,10 @@ export function CompareTab() {
       </Badge>
     );
 
+  const openExpandedChart = (test: 'chi' | 'ks' | 'poker', entry: CompareEntry) => {
+    setExpandedChart({ test, generator: entry.name, entry });
+  };
+
   const renderChiChart = (entry: CompareEntry, expanded: boolean = false) => {
     const details = entry.chi.details as ChiSquareDetails;
     const chartData = details.observed.map((o, i) => ({
@@ -118,11 +196,11 @@ export function CompareTab() {
     }));
 
     return (
-      <ResponsiveContainer width="100%" height={expanded ? 300 : 120}>
+      <ResponsiveContainer width="100%" height={expanded ? 560 : 120}>
         <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="bin" tick={{ fontSize: expanded ? 10 : 7 }} />
-          <YAxis tick={{ fontSize: expanded ? 10 : 7 }} />
+          <XAxis dataKey="bin" tick={{ fontSize: expanded ? 12 : 7 }} />
+          <YAxis tick={{ fontSize: expanded ? 12 : 7 }} />
           <RechartsTooltip />
           <Bar dataKey="Observado" fill="var(--color-chart-1)" />
           <Bar dataKey="Esperado" fill="var(--color-chart-2)" />
@@ -141,11 +219,11 @@ export function CompareTab() {
     }));
 
     return (
-      <ResponsiveContainer width="100%" height={expanded ? 300 : 120}>
+      <ResponsiveContainer width="100%" height={expanded ? 560 : 120}>
         <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="i" tick={{ fontSize: expanded ? 10 : 7 }} />
-          <YAxis domain={[0, 1]} tick={{ fontSize: expanded ? 10 : 7 }} />
+          <XAxis dataKey="i" tick={{ fontSize: expanded ? 12 : 7 }} />
+          <YAxis domain={[0, 1]} tick={{ fontSize: expanded ? 12 : 7 }} />
           <RechartsTooltip />
           <Line type="stepAfter" dataKey="Empirica" stroke="var(--color-chart-1)" dot={false} strokeWidth={1.5} />
           <Line type="monotone" dataKey="Teorica" stroke="var(--color-chart-2)" dot={false} strokeWidth={1.5} />
@@ -168,11 +246,11 @@ export function CompareTab() {
       }));
 
     return (
-      <ResponsiveContainer width="100%" height={expanded ? 300 : 120}>
-        <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: expanded ? 40 : 5 }}>
+      <ResponsiveContainer width="100%" height={expanded ? 560 : 120}>
+        <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: expanded ? 72 : 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" tick={{ fontSize: expanded ? 10 : 6 }} angle={-30} textAnchor="end" height={expanded ? 50 : 40} />
-          <YAxis tick={{ fontSize: expanded ? 10 : 7 }} />
+          <XAxis dataKey="name" tick={{ fontSize: expanded ? 12 : 6 }} angle={-30} textAnchor="end" height={expanded ? 84 : 40} />
+          <YAxis tick={{ fontSize: expanded ? 12 : 7 }} />
           <RechartsTooltip />
           <Bar dataKey="Observado" fill="var(--color-chart-1)" />
           <Bar dataKey="Esperado" fill="var(--color-chart-2)" />
@@ -185,58 +263,162 @@ export function CompareTab() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Comparar Generadores</CardTitle>
+          <CardTitle className="text-base">Parámetros de los Generadores</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Ejecuta los tres generadores con la misma semilla y compara los resultados
-            de las pruebas estadisticas.
+            Configura los parámetros para cada generador y ejecuta la comparación.
           </p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label className="text-xs">Semilla</Label>
-              <Input
-                type="number"
-                value={seed}
-                onChange={(e) => setSeed(parseInt(e.target.value) || 0)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Cantidad (N)</Label>
-              <Input
-                type="number"
-                value={count}
-                onChange={(e) => setCount(parseInt(e.target.value) || 100)}
-                min={5}
-                max={10000}
-              />
-            </div>
-          </div>
-          <Button onClick={handleCompare}>Comparar</Button>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+
+          <Tabs defaultValue="lcg" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="lcg">LCG</TabsTrigger>
+              <TabsTrigger value="mcg">MCG</TabsTrigger>
+              <TabsTrigger value="ms">Cuadrados Medios</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="lcg" className="space-y-3 mt-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Semilla (X₀)</Label>
+                  <FormattedNumberInput
+                    value={lcgConfig.seed}
+                    onChange={(v) => setLcgConfig((c) => ({ ...c, seed: v }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Multiplicador (a)</Label>
+                  <FormattedNumberInput
+                    value={lcgConfig.a}
+                    onChange={(v) => setLcgConfig((c) => ({ ...c, a: v }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Incremento (c)</Label>
+                  <FormattedNumberInput
+                    value={lcgConfig.c}
+                    onChange={(v) => setLcgConfig((c) => ({ ...c, c: v }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Módulo (m)</Label>
+                  <FormattedNumberInput
+                    value={lcgConfig.m}
+                    onChange={(v) => setLcgConfig((c) => ({ ...c, m: v }))}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Cantidad (N)</Label>
+                <FormattedNumberInput
+                  value={lcgConfig.count}
+                  onChange={(v) => setLcgConfig((c) => ({ ...c, count: Math.max(5, Math.min(v, 10000)) }))}
+                  min={5}
+                  max={10000}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="mcg" className="space-y-3 mt-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Semilla (X₀)</Label>
+                  <FormattedNumberInput
+                    value={mcgConfig.seed}
+                    onChange={(v) => setMcgConfig((c) => ({ ...c, seed: v }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Multiplicador (a)</Label>
+                  <FormattedNumberInput
+                    value={mcgConfig.a}
+                    onChange={(v) => setMcgConfig((c) => ({ ...c, a: v }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Módulo (m)</Label>
+                  <FormattedNumberInput
+                    value={mcgConfig.m}
+                    onChange={(v) => setMcgConfig((c) => ({ ...c, m: v }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Cantidad (N)</Label>
+                  <FormattedNumberInput
+                    value={mcgConfig.count}
+                    onChange={(v) => setMcgConfig((c) => ({ ...c, count: Math.max(5, Math.min(v, 10000)) }))}
+                    min={5}
+                    max={10000}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ms" className="space-y-3 mt-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Semilla</Label>
+                  <FormattedNumberInput
+                    value={msConfig.seed}
+                    onChange={(v) => setMsConfig((c) => ({ ...c, seed: v }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Iteraciones</Label>
+                  <FormattedNumberInput
+                    value={msConfig.iterations}
+                    onChange={(v) => setMsConfig((c) => ({ ...c, iterations: Math.max(5, Math.min(v, 10000)) }))}
+                    min={5}
+                    max={10000}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <Button onClick={handleCompare} className="w-full">
+            Comparar
+          </Button>
         </CardContent>
       </Card>
 
       {comparison && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Resultados de la Comparacion</CardTitle>
+            <CardTitle className="text-base">Resultados de la Comparación</CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="w-full">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-48">Prueba</TableHead>
+                    {comparisonColumns.map((col) => (
+                      <TableHead key={col.label} className={col.className}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex cursor-help items-center">{col.label}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[220px]">
+                            <p className="text-xs">{col.tip}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableHead>
+                    ))}
                     {comparison.map((e) => (
                       <TableHead key={e.name} className="text-center min-w-[180px]">
-                        {e.name}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex cursor-help items-center">{e.name}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[220px]">
+                            <p className="text-xs">Resultados del generador {e.name} para cada prueba estadística.</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Chi-Square */}
                   <TableRow>
                     <TableCell className="font-medium">Chi-Cuadrada (χ²)</TableCell>
                     {comparison.map((e) => (
@@ -244,14 +426,13 @@ export function CompareTab() {
                         <div className="flex flex-col items-center gap-1">
                           <PassBadge pass={e.chi.pass} />
                           <span className="text-xs font-mono">
-                            χ² = {e.chi.statistic} / {e.chi.criticalValue}
+                            χ² = {e.chi.statistic.toFixed(2)} / {e.chi.criticalValue}
                           </span>
                         </div>
                       </TableCell>
                     ))}
                   </TableRow>
 
-                  {/* K-S */}
                   <TableRow>
                     <TableCell className="font-medium">Kolmogorov-Smirnov</TableCell>
                     {comparison.map((e) => (
@@ -259,14 +440,13 @@ export function CompareTab() {
                         <div className="flex flex-col items-center gap-1">
                           <PassBadge pass={e.ks.pass} />
                           <span className="text-xs font-mono">
-                            D = {e.ks.statistic} / {e.ks.criticalValue}
+                            D = {e.ks.statistic.toFixed(4)} / {e.ks.criticalValue}
                           </span>
                         </div>
                       </TableCell>
                     ))}
                   </TableRow>
 
-                  {/* Poker */}
                   <TableRow>
                     <TableCell className="font-medium">Poker</TableCell>
                     {comparison.map((e) => (
@@ -275,7 +455,7 @@ export function CompareTab() {
                           <div className="flex flex-col items-center gap-1">
                             <PassBadge pass={e.poker.pass} />
                             <span className="text-xs font-mono">
-                              χ² = {e.poker.statistic} / {e.poker.criticalValue}
+                              χ² = {e.poker.statistic.toFixed(2)} / {e.poker.criticalValue}
                             </span>
                           </div>
                         ) : (
@@ -285,12 +465,10 @@ export function CompareTab() {
                     ))}
                   </TableRow>
 
-                  {/* Summary */}
                   <TableRow>
                     <TableCell className="font-medium">Resultado Global</TableCell>
                     {comparison.map((e) => {
-                      const allPass =
-                        e.chi.pass && e.ks.pass && (e.poker?.pass ?? true);
+                      const allPass = e.chi.pass && e.ks.pass && (e.poker?.pass ?? true);
                       return (
                         <TableCell key={e.name} className="text-center">
                           <Badge
@@ -323,10 +501,18 @@ export function CompareTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-16">i</TableHead>
-                    <TableHead className="text-center">Ri LCG</TableHead>
-                    <TableHead className="text-center">Ri MCG</TableHead>
-                    <TableHead className="text-center">Ri C. Medios</TableHead>
+                    {riColumns.map((col) => (
+                      <TableHead key={col.label} className={col.className}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex cursor-help items-center">{col.label}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-[220px]">
+                            <p className="text-xs">{col.tip}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableHead>
+                    ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -379,11 +565,23 @@ export function CompareTab() {
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-sm">{e.name}</CardTitle>
-                          <PassBadge pass={e.chi.pass} />
+                          <div className="flex items-center gap-1">
+                            <PassBadge pass={e.chi.pass} />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => openExpandedChart('chi', e)}
+                              aria-label={`Expandir grafica Chi-Cuadrada de ${e.name}`}
+                              title="Expandir grafica"
+                            >
+                              <Maximize2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <div className="cursor-pointer" onClick={() => setExpandedChart({ test: 'chi', generator: e.name, entry: e })}>
+                        <div className="cursor-pointer" onClick={() => openExpandedChart('chi', e)}>
                           {renderChiChart(e, false)}
                         </div>
                       </CardContent>
@@ -399,11 +597,23 @@ export function CompareTab() {
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-sm">{e.name}</CardTitle>
-                          <PassBadge pass={e.ks.pass} />
+                          <div className="flex items-center gap-1">
+                            <PassBadge pass={e.ks.pass} />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => openExpandedChart('ks', e)}
+                              aria-label={`Expandir grafica KS de ${e.name}`}
+                              title="Expandir grafica"
+                            >
+                              <Maximize2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <div className="cursor-pointer" onClick={() => setExpandedChart({ test: 'ks', generator: e.name, entry: e })}>
+                        <div className="cursor-pointer" onClick={() => openExpandedChart('ks', e)}>
                           {renderKSChart(e, false)}
                         </div>
                       </CardContent>
@@ -419,12 +629,26 @@ export function CompareTab() {
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-sm">{e.name}</CardTitle>
-                          {e.poker ? <PassBadge pass={e.poker.pass} /> : <span className="text-xs text-muted-foreground">N/A</span>}
+                          <div className="flex items-center gap-1">
+                            {e.poker ? <PassBadge pass={e.poker.pass} /> : <span className="text-xs text-muted-foreground">N/A</span>}
+                            {e.poker ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => openExpandedChart('poker', e)}
+                                aria-label={`Expandir grafica Poker de ${e.name}`}
+                                title="Expandir grafica"
+                              >
+                                <Maximize2 className="h-3.5 w-3.5" />
+                              </Button>
+                            ) : null}
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent className={!e.poker ? 'flex items-center justify-center' : ''}>
                         {e.poker ? (
-                          <div className="cursor-pointer" onClick={() => setExpandedChart({ test: 'poker', generator: e.name, entry: e })}>
+                          <div className="cursor-pointer" onClick={() => openExpandedChart('poker', e)}>
                             {renderPokerChart(e, false)}
                           </div>
                         ) : (
@@ -438,13 +662,13 @@ export function CompareTab() {
 
               {expandedChart && (
                 <Dialog open={true} onOpenChange={(open) => !open && setExpandedChart(null)}>
-                  <DialogContent className="max-w-4xl max-h-[90vh]">
-                    <DialogHeader>
+                  <DialogContent className="w-[95vw] max-w-[95vw] h-[92vh] p-0 gap-0 flex flex-col">
+                    <DialogHeader className="px-6 py-4 border-b border-border">
                       <DialogTitle>
                         {expandedChart.generator} - {expandedChart.test === 'chi' ? 'Chi-Cuadrada' : expandedChart.test === 'ks' ? 'Kolmogorov-Smirnov' : 'Poker'}
                       </DialogTitle>
                     </DialogHeader>
-                    <div className="overflow-auto">
+                    <div className="flex-1 min-h-0 overflow-auto p-6">
                       {expandedChart.test === 'chi' && renderChiChart(expandedChart.entry, true)}
                       {expandedChart.test === 'ks' && renderKSChart(expandedChart.entry, true)}
                       {expandedChart.test === 'poker' && renderPokerChart(expandedChart.entry, true)}

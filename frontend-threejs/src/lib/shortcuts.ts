@@ -59,7 +59,7 @@ export const SHORTCUTS: ShortcutDefinition[] = [
   {
     action: 'open-config',
     keys: ['C'],
-    description: 'Abre la configuracion',
+    description: 'Abre o cierra la configuracion',
     category: 'simulation',
   },
   {

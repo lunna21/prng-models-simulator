@@ -57,7 +57,7 @@ export function useKeyboardShortcuts() {
           break;
         }
         case 'open-config': {
-          state.setConfigOpen(true);
+          state.setConfigOpen(!state.configOpen);
           event.preventDefault();
           break;
         }
