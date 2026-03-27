@@ -381,7 +381,8 @@ export function SimulationTab() {
                           <span className="font-medium text-foreground/90">
                             u
                           </span>
-                          : número pseudoaleatorio uniforme entre 0 y 1.
+                          : número pseudoaleatorio uniforme entre 0 y 1 (tomado
+                          del generador).
                         </p>
                         <p className="text-xs text-muted-foreground">
                           <span className="font-medium text-foreground/90">
