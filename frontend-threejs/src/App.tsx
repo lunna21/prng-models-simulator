@@ -3,6 +3,7 @@ import { BankScene } from '@/components/scene/BankScene';
 import { ControlsPanel } from '@/components/controls/ControlsPanel';
 import { ConfigDialog } from '@/components/config/ConfigDialog';
 import { Button } from '@/components/ui/button';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useGuidedTour } from '@/tour/useGuidedTour';
 import { Sun, Moon, HelpCircle } from 'lucide-react';
@@ -42,47 +43,49 @@ function App() {
   }, [hasSeenTour, startTour]);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-background">
-      {/* 3D Scene - full viewport */}
-      <div className="absolute inset-0" data-tour="scene">
-        <BankScene />
-      </div>
-
-      {/* Title bar */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-background/80 px-6 py-2 shadow-lg backdrop-blur-sm">
-          <h1 className="text-sm font-bold tracking-tight text-foreground">
-            Simulador de Colas Bancarias — PRNG
-          </h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={startTour}
-            aria-label="Iniciar tour guiado"
-            title="Tour guiado"
-          >
-            <HelpCircle className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={toggleTheme}
-            aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-          >
-            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
+    <TooltipProvider delayDuration={300}>
+      <div className="relative h-screen w-screen overflow-hidden bg-background">
+        {/* 3D Scene - full viewport */}
+        <div className="absolute inset-0" data-tour="scene">
+          <BankScene />
         </div>
+
+        {/* Title bar */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-background/80 px-6 py-2 shadow-lg backdrop-blur-sm">
+            <h1 className="text-sm font-bold tracking-tight text-foreground">
+              Simulador de Colas Bancarias — PRNG
+            </h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={startTour}
+              aria-label="Iniciar tour guiado"
+              title="Tour guiado"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={toggleTheme}
+              aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Controls Panel - bottom left */}
+        <ControlsPanel />
+
+        {/* Configuration Dialog */}
+        <ConfigDialog />
+
       </div>
-
-      {/* Controls Panel - bottom left */}
-      <ControlsPanel />
-
-      {/* Configuration Dialog */}
-      <ConfigDialog />
-
-    </div>
+    </TooltipProvider>
   );
 }
 

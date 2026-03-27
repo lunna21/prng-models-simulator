@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { toast } from 'sonner';
 import type { GeneratorType, GeneratorResult } from '@/lib/generators/types';
 import type { TestResult } from '@/lib/tests/types';
 import type {
@@ -31,6 +32,7 @@ interface MCGConfig {
 interface MSConfig {
   seed: number;
   iterations: number;
+  d: number;
 }
 
 // ── Store State ────────────────────────────────────────
@@ -95,7 +97,7 @@ export const useStore = create<AppState>()(
   generatorType: 'lcg',
   lcgConfig: { seed: 7, a: 5, c: 3, m: 16, count: 100 },
   mcgConfig: { seed: 7, a: 5, m: 16, count: 100 },
-  msConfig: { seed: 1234, iterations: 100 },
+  msConfig: { seed: 1234, iterations: 100, d: 4 },
   generatorResult: null,
   generatorError: null,
 
@@ -155,8 +157,13 @@ export const useStore = create<AppState>()(
         ksResult: null,
         pokerResult: null,
       });
+      toast.success('Secuencia generada', {
+        description: `${result.sequence.length} valores generados con ${state.generatorType.toUpperCase()}.`,
+      });
     } catch (e) {
-      set({ generatorResult: null, generatorError: (e as Error).message });
+      const msg = (e as Error).message;
+      set({ generatorResult: null, generatorError: msg });
+      toast.error('Error al generar', { description: msg });
     }
   },
 
@@ -165,6 +172,7 @@ export const useStore = create<AppState>()(
     const state = get();
     if (!state.generatorResult) {
       set({ testError: 'Primero genere una secuencia.' });
+      toast.warning('Primero genere una secuencia');
       return;
     }
     try {
@@ -178,8 +186,13 @@ export const useStore = create<AppState>()(
         pokerResult: poker,
         testError: null,
       });
+      toast.success('Pruebas ejecutadas', {
+        description: 'Chi-cuadrada, Kolmogorov-Smirnov y Póker completadas.',
+      });
     } catch (e) {
-      set({ testError: (e as Error).message });
+      const msg = (e as Error).message;
+      set({ testError: msg });
+      toast.error('Error en pruebas', { description: msg });
     }
   },
 
@@ -209,8 +222,13 @@ export const useStore = create<AppState>()(
         }
         sequence = result.normalized;
         set({ generatorResult: result });
+        toast.info('Secuencia auto-generada', {
+          description: `Se generaron ${needed} valores para la simulación.`,
+        });
       } catch (e) {
-        set({ simError: (e as Error).message });
+        const msg = (e as Error).message;
+        set({ simError: msg });
+        toast.error('Error al generar secuencia', { description: msg });
         return;
       }
     }
@@ -223,8 +241,13 @@ export const useStore = create<AppState>()(
         currentEventIndex: 0,
         isPlaying: false,
       });
+      toast.success('Simulación completada', {
+        description: `${simResult.events.length} eventos procesados.`,
+      });
     } catch (e) {
-      set({ simResult: null, simError: (e as Error).message });
+      const msg = (e as Error).message;
+      set({ simResult: null, simError: msg });
+      toast.error('Error en simulación', { description: msg });
     }
   },
 

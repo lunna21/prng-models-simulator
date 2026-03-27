@@ -1,5 +1,6 @@
 import { useStore } from '@/store/store';
 import { Button } from '@/components/ui/button';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,8 @@ import {
 } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
 import type { DistributionMode } from '@/lib/simulation/types';
 
 export function SimulationTab() {
@@ -21,7 +24,6 @@ export function SimulationTab() {
   const setSimConfig = useStore((s) => s.setSimConfig);
   const runSim = useStore((s) => s.runSim);
   const simResult = useStore((s) => s.simResult);
-  const simError = useStore((s) => s.simError);
 
   return (
     <div className="space-y-6">
@@ -29,40 +31,64 @@ export function SimulationTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Parametros de Simulacion</CardTitle>
+            <CardTitle className="text-base">Parámetros de Simulación</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Numero de Servidores</Label>
-                <Input
-                  type="number"
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1">
+                  Núm. de Servidores
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-[220px]">
+                      <p className="text-xs">Ventanillas de servicio activas (c en M/M/c). Rango: 1–10.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </Label>
+                <FormattedNumberInput
                   value={simConfig.servers}
-                  onChange={(e) =>
-                    setSimConfig({ servers: Math.max(1, parseInt(e.target.value) || 1) })
-                  }
+                  onChange={(v) => setSimConfig({ servers: Math.max(1, Math.min(v, 10)) })}
                   min={1}
                   max={10}
+                  placeholder="ej. 2"
                 />
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Numero de Clientes</Label>
-                <Input
-                  type="number"
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1">
+                  Núm. de Clientes
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-[220px]">
+                      <p className="text-xs">Clientes totales a simular. Genera una secuencia larga si es necesario. Rango: 1–1,000.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </Label>
+                <FormattedNumberInput
                   value={simConfig.customerCount}
-                  onChange={(e) =>
-                    setSimConfig({
-                      customerCount: Math.max(1, parseInt(e.target.value) || 1),
-                    })
-                  }
+                  onChange={(v) => setSimConfig({ customerCount: Math.max(1, Math.min(v, 1000)) })}
                   min={1}
                   max={1000}
+                  placeholder="ej. 10"
                 />
               </div>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-xs">Modo de Distribucion</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs flex items-center gap-1">
+                Modo de Distribución
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[220px]">
+                    <p className="text-xs">Exponencial usa transformada inversa X = -ln(1-U)/λ. Tabla usa distribución discreta predefinida.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </Label>
               <Select
                 value={simConfig.distributionMode}
                 onValueChange={(v) => setSimConfig({ distributionMode: v as DistributionMode })}
@@ -72,15 +98,25 @@ export function SimulationTab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="exponential">Exponencial (transformada inversa)</SelectItem>
-                  <SelectItem value="table">Tabla de distribucion (discreto)</SelectItem>
+                  <SelectItem value="table">Tabla de distribución (discreto)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {simConfig.distributionMode === 'exponential' && (
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Tasa de llegada (λ)</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs flex items-center gap-1">
+                    Tasa de llegada (λ)
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[220px]">
+                        <p className="text-xs">Llegadas promedio por unidad de tiempo. Debe ser &gt; 0. Para estabilidad: λ &lt; c·μ.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
                   <Input
                     type="number"
                     step="0.1"
@@ -89,10 +125,21 @@ export function SimulationTab() {
                       setSimConfig({ arrivalRate: parseFloat(e.target.value) || 0.1 })
                     }
                     min={0.01}
+                    className={simConfig.arrivalRate <= 0 ? 'border-destructive' : undefined}
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Tasa de servicio (μ)</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs flex items-center gap-1">
+                    Tasa de servicio (μ)
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[220px]">
+                        <p className="text-xs">Servicios completados por servidor por unidad de tiempo. Debe ser &gt; 0.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
                   <Input
                     type="number"
                     step="0.1"
@@ -101,6 +148,7 @@ export function SimulationTab() {
                       setSimConfig({ serviceRate: parseFloat(e.target.value) || 0.1 })
                     }
                     min={0.01}
+                    className={simConfig.serviceRate <= 0 ? 'border-destructive' : undefined}
                   />
                 </div>
               </div>
@@ -108,16 +156,14 @@ export function SimulationTab() {
 
             {simConfig.distributionMode === 'table' && (
               <p className="text-xs text-muted-foreground">
-                Se usaran las tablas de distribucion predeterminadas basadas en el archivo
+                Se usarán las tablas de distribución predeterminadas basadas en el archivo
                 de referencia CSV.
               </p>
             )}
 
             <Button onClick={runSim} className="w-full">
-              Ejecutar Simulacion
+              Ejecutar Simulación
             </Button>
-
-            {simError && <p className="text-sm text-destructive">{simError}</p>}
           </CardContent>
         </Card>
 
@@ -125,7 +171,7 @@ export function SimulationTab() {
         {simResult && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Resumen Estadistico</CardTitle>
+              <CardTitle className="text-base">Resumen Estadístico</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-3">
@@ -170,7 +216,7 @@ export function SimulationTab() {
               <Separator className="my-3" />
 
               <div className="space-y-2">
-                <p className="text-xs font-medium">Utilizacion por Servidor</p>
+                <p className="text-xs font-medium">Utilización por Servidor</p>
                 {simResult.stats.serverUtilization.map((u, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground w-20">
@@ -208,8 +254,8 @@ export function SimulationTab() {
                   <TableRow>
                     <TableHead className="w-16">Reloj</TableHead>
                     <TableHead>Evento</TableHead>
-                    <TableHead>Accion</TableHead>
-                    <TableHead>Proximo Evento</TableHead>
+                    <TableHead>Acción</TableHead>
+                    <TableHead>Próximo Evento</TableHead>
                     <TableHead className="w-16">N(t)</TableHead>
                     <TableHead>Cola</TableHead>
                   </TableRow>

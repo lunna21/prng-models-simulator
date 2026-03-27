@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { FormattedNumberInput } from '@/components/ui/formatted-number-input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +14,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { lcg, mcg, middleSquare } from '@/lib/generators';
 import type { GeneratorResult } from '@/lib/generators/types';
 import { chiSquareTest, ksTest, pokerTest } from '@/lib/tests';
 import type { TestResult } from '@/lib/tests/types';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Info } from 'lucide-react';
 
 interface CompareEntry {
   name: string;
@@ -31,11 +33,9 @@ export function CompareTab() {
   const [seed, setSeed] = useState(7);
   const [count, setCount] = useState(1000);
   const [comparison, setComparison] = useState<CompareEntry[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const handleCompare = () => {
     try {
-      setError(null);
       const entries: CompareEntry[] = [];
 
       // LCG
@@ -61,7 +61,7 @@ export function CompareTab() {
 
       // Middle-Square
       const msSeed = Math.max(seed, 10); // at least 2 digits
-      const msResult = middleSquare.generate({ seed: msSeed, iterations: count });
+      const msResult = middleSquare.generate({ seed: msSeed, iterations: count, d: 4 });
       entries.push({
         name: 'Cuadrados Medios',
         result: msResult,
@@ -71,9 +71,13 @@ export function CompareTab() {
       });
 
       setComparison(entries);
+      toast.success('Comparación completada', {
+        description: '3 generadores evaluados con pruebas estadísticas.',
+      });
     } catch (e) {
-      setError((e as Error).message);
+      const msg = (e as Error).message;
       setComparison(null);
+      toast.error('Error en comparación', { description: msg });
     }
   };
 
@@ -97,37 +101,56 @@ export function CompareTab() {
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Ejecuta los tres generadores con la misma semilla y compara los resultados
-            de las pruebas estadisticas.
+            de las pruebas estadísticas.
           </p>
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label className="text-xs">Semilla</Label>
-              <Input
-                type="number"
+            <div className="space-y-1.5">
+              <Label className="text-xs flex items-center gap-1">
+                Semilla
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[220px]">
+                    <p className="text-xs">Valor inicial compartido por los tres generadores para la comparación.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </Label>
+              <FormattedNumberInput
                 value={seed}
-                onChange={(e) => setSeed(parseInt(e.target.value) || 0)}
+                onChange={(v) => setSeed(v)}
+                placeholder="ej. 7"
               />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Cantidad (N)</Label>
-              <Input
-                type="number"
+            <div className="space-y-1.5">
+              <Label className="text-xs flex items-center gap-1">
+                Cantidad (N)
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[220px]">
+                    <p className="text-xs">Números a generar por cada modelo. Rango: 5–10,000.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </Label>
+              <FormattedNumberInput
                 value={count}
-                onChange={(e) => setCount(parseInt(e.target.value) || 100)}
+                onChange={(v) => setCount(Math.max(5, Math.min(v, 10000)))}
                 min={5}
                 max={10000}
+                placeholder="ej. 1000"
               />
             </div>
           </div>
           <Button onClick={handleCompare}>Comparar</Button>
-          {error && <p className="text-sm text-destructive">{error}</p>}
         </CardContent>
       </Card>
 
       {comparison && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Resultados de la Comparacion</CardTitle>
+            <CardTitle className="text-base">Resultados de la Comparación</CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="w-full">
