@@ -5,47 +5,63 @@ interface ServerWindowProps {
 }
 
 export function ServerWindow({ position, busy, serverId: _serverId }: ServerWindowProps) {
-  const color = busy ? '#ef4444' : '#22c55e'; // red when busy, green when idle
-  const glassColor = busy ? '#fca5a5' : '#bbf7d0';
+  const statusColor = busy ? '#FF6B9D' : '#2ECC71';
+  const glassColor = busy ? '#ffccd5' : '#ccf5e0';
 
   return (
     <group position={position}>
-      {/* Counter desk */}
+      {/* Counter desk - soft gray with warm tint */}
       <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.8, 1, 0.8]} />
-        <meshStandardMaterial color="#64748b" />
+        <meshPhysicalMaterial
+          color="#d8d0e0"
+          roughness={0.4}
+          metalness={0.0}
+          clearcoat={0.3}
+        />
       </mesh>
 
-      {/* Window frame / divider */}
+      {/* Window frame / divider - soft purple */}
       <mesh position={[0, 1.6, 0]}>
         <boxGeometry args={[1.9, 1.4, 0.1]} />
-        <meshStandardMaterial color="#334155" />
+        <meshPhysicalMaterial
+          color="#a898c8"
+          roughness={0.35}
+          metalness={0.0}
+          clearcoat={0.5}
+        />
       </mesh>
 
-      {/* Glass */}
+      {/* Glass - soft transparent */}
       <mesh position={[0, 1.6, 0.06]}>
         <boxGeometry args={[1.6, 1.1, 0.02]} />
-        <meshStandardMaterial
+        <meshPhysicalMaterial
           color={glassColor}
           transparent
-          opacity={0.3}
+          opacity={0.25}
+          roughness={0.1}
+          metalness={0.0}
+          clearcoat={1}
         />
       </mesh>
 
-      {/* Status light */}
-      <mesh position={[0.7, 2.4, 0]}>
-        <sphereGeometry args={[0.12, 16, 16]} />
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={0.5}
+      {/* Status light - bubble style */}
+      <mesh position={[0.7, 2.4, 0]} castShadow>
+        <sphereGeometry args={[0.15, 16, 16]} />
+        <meshPhysicalMaterial
+          color={statusColor}
+          emissive={statusColor}
+          emissiveIntensity={0.4}
+          roughness={0.2}
+          metalness={0.0}
+          clearcoat={1}
         />
       </mesh>
 
-      {/* Server label */}
+      {/* Server label - soft dark */}
       <mesh position={[0, 2.5, 0.1]}>
         <planeGeometry args={[0.8, 0.3]} />
-        <meshStandardMaterial color="#1e293b" />
+        <meshStandardMaterial color="#4a4060" />
       </mesh>
     </group>
   );

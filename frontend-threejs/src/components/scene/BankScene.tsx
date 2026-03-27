@@ -1,43 +1,43 @@
-import React from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import { useStore } from '@/store/store';
-import { Floor } from './Floor';
-import { ServerWindow } from './ServerWindow';
-import { CustomerMesh } from './Customer';
+import React from "react";
+import * as THREE from "three";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import { useStore } from "@/store/store";
+import { Floor } from "./Floor";
+import { Character, type CharacterType } from "./Character";
+import OperatorCabin from "./OperatorCabin";
 
 function computeServerPositions(count: number): [number, number, number][] {
   const spacing = 2.5;
   const totalWidth = (count - 1) * spacing;
   const startX = -totalWidth / 2;
-  return Array.from({ length: count }, (_, i) => [
-    startX + i * spacing,
-    0,
-    -5,
-  ] as [number, number, number]);
+  return Array.from(
+    { length: count },
+    (_, i) => [startX + i * spacing, 0, -5.5] as [number, number, number],
+  );
 }
 
 function computeQueuePositions(count: number): [number, number, number][] {
   const positions: [number, number, number][] = [];
   for (let i = 0; i < count; i++) {
-    const row = Math.floor(i / 4);
-    const col = i % 4;
-    positions.push([
-      -2 + col * 1.2,
-      0,
-      2 + row * 1.2,
-    ]);
+    const row = Math.floor(i / 3);
+    const col = i % 3;
+    positions.push([-1.5 + col * 1.5, 0, 1 + row * 1.5]);
   }
   return positions;
 }
 
-function computeServingPosition(serverPos: [number, number, number]): [number, number, number] {
-  return [serverPos[0], 0, serverPos[2] + 1.5];
+function computeServingPosition(
+  serverPos: [number, number, number],
+): [number, number, number] {
+  return [serverPos[0], 0, serverPos[2] + 3.5];
 }
 
 function computeDepartPosition(): [number, number, number] {
   return [8, 0, 6];
 }
+
+const CHARACTER_TYPES: CharacterType[] = ["oval", "sphere", "capsule"];
 
 function SceneContent() {
   const simConfig = useStore((s) => s.simConfig);
@@ -47,84 +47,80 @@ function SceneContent() {
   const serverCount = simConfig.servers;
   const serverPositions = computeServerPositions(serverCount);
 
-  // Get current snapshot
   const snapshot = simResult?.snapshots[currentEventIndex] ?? null;
 
-  // Determine server busy states
   const serverBusy = snapshot
     ? snapshot.servers.map((s) => s.busy)
     : new Array(serverCount).fill(false);
 
-  // Compute customer positions based on snapshot
   const customerElements: React.ReactElement[] = [];
 
   if (snapshot) {
-    // Customers being served
     for (const server of snapshot.servers) {
       if (server.busy && server.currentCustomer !== null) {
         const srvPos = serverPositions[server.id - 1];
         if (srvPos) {
           const servingPos = computeServingPosition(srvPos);
+          const charType = CHARACTER_TYPES[server.currentCustomer % 3];
           customerElements.push(
-            <CustomerMesh
+            <Character
               key={`serving-${server.currentCustomer}`}
+              type={charType}
               position={servingPos}
               targetPosition={servingPos}
               state="serving"
-              label={`C${server.currentCustomer}`}
-            />
+            />,
           );
         }
       }
     }
 
-    // Customers in queue
     const queuePositions = computeQueuePositions(snapshot.queue.length);
     snapshot.queue.forEach((custId, idx) => {
       const qPos = queuePositions[idx];
       if (qPos) {
+        const charType = CHARACTER_TYPES[custId % 3];
         customerElements.push(
-          <CustomerMesh
+          <Character
             key={`queue-${custId}`}
+            type={charType}
             position={qPos}
             targetPosition={qPos}
             state="waiting"
-            label={`C${custId}`}
-          />
+          />,
         );
       }
     });
 
-    // Show recent departures (from current event)
-    if (snapshot.currentEvent?.type === 'DEPARTURE') {
+    if (snapshot.currentEvent?.type === "DEPARTURE") {
       const departPos = computeDepartPosition();
+      const charType = CHARACTER_TYPES[snapshot.currentEvent.customerId % 3];
       customerElements.push(
-        <CustomerMesh
+        <Character
           key={`depart-${snapshot.currentEvent.customerId}`}
+          type={charType}
           position={departPos}
           targetPosition={[departPos[0] + 3, departPos[1], departPos[2]]}
           state="departing"
-          label={`C${snapshot.currentEvent.customerId}`}
-        />
+        />,
       );
     }
 
-    // Show arriving customer
-    if (snapshot.currentEvent?.type === 'ARRIVAL') {
+    if (snapshot.currentEvent?.type === "ARRIVAL") {
       const arrivingId = snapshot.currentEvent.customerId;
-      // Check if not already shown (serving or queue)
       const alreadyShown =
         snapshot.servers.some((s) => s.currentCustomer === arrivingId) ||
         snapshot.queue.includes(arrivingId);
       if (!alreadyShown) {
+        const charType = CHARACTER_TYPES[arrivingId % 3];
         customerElements.push(
-          <CustomerMesh
+          <Character
             key={`arrive-${arrivingId}`}
+            type={charType}
             position={[-8, 0, 6]}
             targetPosition={[0, 0, 4]}
             state="arriving"
-            label={`C${arrivingId}`}
-          />
+          />,
         );
       }
     }
@@ -132,48 +128,45 @@ function SceneContent() {
 
   return (
     <>
-      {/* Lighting */}
-      <ambientLight intensity={0.6} />
+      {/* Soft studio lighting */}
+      <ambientLight intensity={0.5} color="#e8e8ff" />
+      <hemisphereLight args={["#b8d4e8", "#d4c4a8", 0.6]} />
       <directionalLight
-        position={[5, 10, 5]}
-        intensity={0.8}
+        position={[5, 12, 5]}
+        intensity={0.7}
+        color="#fff5e6"
         castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-left={-15}
+        shadow-camera-right={15}
+        shadow-camera-top={15}
+        shadow-camera-bottom={-15}
+        shadow-radius={8}
+        shadow-bias={-0.0001}
       />
-      <directionalLight position={[-3, 8, -3]} intensity={0.3} />
+      <directionalLight
+        position={[-3, 8, -3]}
+        intensity={0.3}
+        color="#e0e8ff"
+      />
+      <pointLight position={[0, 6, 0]} intensity={0.4} color="#fff8f0" />
 
-      {/* Floor */}
+      {/* Floor with all world elements */}
       <Floor />
 
-      {/* Server windows */}
+      {/* Operators at each server position */}
       {serverPositions.map((pos, i) => (
-        <ServerWindow
-          key={`server-${i}`}
-          position={pos}
+        <OperatorCabin
+          key={`operator-${i}`}
+          position={[pos[0], 0, pos[2]]}
           busy={serverBusy[i] ?? false}
-          serverId={i + 1}
         />
       ))}
 
       {/* Customers */}
       {customerElements}
-
-      {/* Rope barriers for queue (decorative) */}
-      {serverCount > 0 && (
-        <group position={[0, 0, 1]}>
-          {/* Left barrier post */}
-          <mesh position={[-3, 0.4, 0]}>
-            <cylinderGeometry args={[0.05, 0.05, 0.8, 8]} />
-            <meshStandardMaterial color="#854d0e" />
-          </mesh>
-          {/* Right barrier post */}
-          <mesh position={[3, 0.4, 0]}>
-            <cylinderGeometry args={[0.05, 0.05, 0.8, 8]} />
-            <meshStandardMaterial color="#854d0e" />
-          </mesh>
-        </group>
-      )}
+      
 
       {/* Camera controls */}
       <OrbitControls
@@ -190,10 +183,17 @@ function SceneContent() {
 export function BankScene() {
   return (
     <Canvas
-      shadows
+      shadows={{ type: THREE.PCFSoftShadowMap }}
       camera={{ position: [0, 10, 14], fov: 50 }}
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: "100%", height: "100%" }}
+      gl={{
+        antialias: true,
+        toneMapping: THREE.ACESFilmicToneMapping,
+        toneMappingExposure: 1.1,
+      }}
     >
+      <color attach="background" args={["#e8e4f0"]} />
+      <fog attach="fog" args={["#e8e4f0", 20, 50]} />
       <SceneContent />
     </Canvas>
   );

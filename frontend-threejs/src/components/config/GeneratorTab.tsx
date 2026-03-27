@@ -348,25 +348,50 @@ export function GeneratorTab() {
             <CardTitle className="text-base">Tabla de Resultados</CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[250px]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">N</TableHead>
-                    <TableHead>Xₙ</TableHead>
-                    <TableHead>Formula</TableHead>
-                    <TableHead>Xₙ₊₁</TableHead>
-                    <TableHead>Rᵢ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {generatorResult.steps.slice(0, 200).map((step) => (
-                    <TableRow key={step.iteration}>
-                      <TableCell className="font-mono text-xs">{step.iteration}</TableCell>
-                      <TableCell className="font-mono text-xs">{step.xPrev}</TableCell>
-                      <TableCell className="font-mono text-xs">{step.formula}</TableCell>
-                      <TableCell className="font-mono text-xs">{step.xNext}</TableCell>
-                      <TableCell className="font-mono text-xs">{step.normalized}</TableCell>
+            <ScrollArea className="h-[280px]">
+              {generatorType === 'middle-square' ? (
+                <Table>
+                  <TableHeader className="sticky top-0 bg-card z-10 shadow-sm">
+                    <TableRow>
+                      <TableHead className="w-12 text-center">N</TableHead>
+                      <TableHead className="text-right">Xₙ</TableHead>
+                      <TableHead>Izq.</TableHead>
+                      <TableHead className="bg-muted/50 text-center">Centro</TableHead>
+                      <TableHead>Der.</TableHead>
+                      <TableHead className="text-right">Xₙ₊₁</TableHead>
+                      <TableHead className="text-right">Rᵢ</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {generatorResult.steps.slice(0, 200).map((step, idx) => {
+                      const ms = step as MiddleSquareStepDetail;
+                      const isEven = idx % 2 === 0;
+                      return (
+                        <TableRow 
+                          key={step.iteration} 
+                          className={`transition-colors hover:bg-muted/50 ${isEven ? 'bg-muted/20' : ''}`}
+                        >
+                          <TableCell className="font-mono text-xs text-center">{fmt(step.iteration)}</TableCell>
+                          <TableCell className="font-mono text-xs text-right">{fmt(step.xPrev)}</TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">{ms.leftPart || '—'}</TableCell>
+                          <TableCell className="font-mono text-xs font-semibold bg-muted/50 text-center">{ms.extracted}</TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">{ms.rightPart || '—'}</TableCell>
+                          <TableCell className="font-mono text-xs text-right">{fmt(step.xNext)}</TableCell>
+                          <TableCell className="font-mono text-xs text-right">{step.normalized}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              ) : (
+                <Table>
+                  <TableHeader className="sticky top-0 bg-card z-10 shadow-sm">
+                    <TableRow>
+                      <TableHead className="w-16 text-center">N</TableHead>
+                      <TableHead className="text-right">Xₙ</TableHead>
+                      <TableHead>Fórmula</TableHead>
+                      <TableHead className="text-right">Xₙ₊₁</TableHead>
+                      <TableHead className="text-right">Rᵢ</TableHead>
                     </TableRow>
                   ))}
                 </TableBody>
