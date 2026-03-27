@@ -1,0 +1,154 @@
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: #f4f6f9;
+  color: #222;
+  min-height: 100vh;
+}
+
+/* ===== App layout ===== */
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}
+
+/* ===== Header ===== */
+.app-header {
+  text-align: center;
+  padding: 2rem 0 1rem;
+  border-bottom: 2px solid #dde3ed;
+  margin-bottom: 1.5rem;
+}
+.app-header h1 { font-size: 2rem; color: #1a237e; }
+.subtitle { color: #555; margin-top: .4rem; }
+
+/* ===== Method selector ===== */
+.method-selector { margin-bottom: 1.5rem; }
+.method-selector h2 { font-size: 1rem; font-weight: 600; margin-bottom: .6rem; color: #444; }
+.method-buttons { display: flex; flex-wrap: wrap; gap: .5rem; }
+.method-btn {
+  padding: .5rem 1rem;
+  border: 2px solid #b0bec5;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: .9rem;
+  transition: all .15s;
+}
+.method-btn:hover { border-color: #4f8ef7; color: #4f8ef7; }
+.method-btn.active { background: #4f8ef7; color: #fff; border-color: #4f8ef7; }
+
+/* ===== Main content ===== */
+.main-content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+.sidebar { flex: 0 0 320px; display: flex; flex-direction: column; gap: 1rem; }
+.results { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* ===== Formula panel ===== */
+.formula-panel {
+  background: #fff;
+  border: 1px solid #dde3ed;
+  border-radius: 8px;
+  padding: 1rem;
+}
+.formula-panel h3 { font-size: 1rem; margin-bottom: .6rem; color: #1a237e; }
+.formula-box {
+  font-size: 1.2rem;
+  font-family: "Courier New", monospace;
+  background: #e8eaf6;
+  color: #1a237e;
+  padding: .6rem 1rem;
+  border-radius: 6px;
+  margin-bottom: .7rem;
+  text-align: center;
+}
+.formula-desc { font-size: .85rem; color: #555; margin-bottom: .7rem; }
+.param-table { width: 100%; border-collapse: collapse; font-size: .83rem; margin-bottom: .7rem; }
+.param-table th, .param-table td { padding: .3rem .5rem; border: 1px solid #e0e4ec; text-align: left; }
+.param-table th { background: #f0f4ff; }
+.formula-note { font-size: .8rem; color: #e65100; margin-bottom: .4rem; }
+.formula-example { font-size: .8rem; color: #2e7d32; }
+
+/* ===== Controls form ===== */
+.controls-form {
+  background: #fff;
+  border: 1px solid #dde3ed;
+  border-radius: 8px;
+  padding: 1rem;
+}
+.controls-form h2 { font-size: 1rem; margin-bottom: .8rem; }
+.field-group { display: flex; flex-direction: column; margin-bottom: .6rem; gap: .2rem; }
+.field-group label { font-size: .85rem; font-weight: 500; color: #444; }
+.field-group input {
+  padding: .4rem .6rem;
+  border: 1px solid #b0bec5;
+  border-radius: 5px;
+  font-size: .9rem;
+  width: 100%;
+}
+.field-group input:focus { outline: 2px solid #4f8ef7; border-color: transparent; }
+.generate-btn {
+  width: 100%;
+  margin-top: .6rem;
+  padding: .6rem;
+  background: #4f8ef7;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background .15s;
+}
+.generate-btn:hover { background: #1565c0; }
+.generate-btn:disabled { background: #9ab4e8; cursor: not-allowed; }
+
+/* ===== Error & warnings ===== */
+.error-box {
+  background: #ffebee; border: 1px solid #ef9a9a;
+  border-radius: 6px; padding: .8rem 1rem; color: #b71c1c;
+}
+.cycle-warning {
+  background: #fff8e1; border: 1px solid #ffe082;
+  border-radius: 6px; padding: .8rem 1rem; color: #795548;
+}
+.cycle-warning code { background: #fffde7; padding: .1rem .3rem; border-radius: 3px; }
+
+/* ===== Charts ===== */
+.charts-section { background: #fff; border: 1px solid #dde3ed; border-radius: 8px; padding: 1rem; }
+.charts-section h2 { font-size: 1rem; margin-bottom: .8rem; }
+.chart-block { margin-bottom: 1.2rem; }
+.chart-block h3 { font-size: .9rem; color: #444; margin-bottom: .4rem; }
+.chart-note { font-size: .78rem; color: #888; margin-bottom: .4rem; }
+
+/* ===== Result table ===== */
+.result-table-wrapper { background: #fff; border: 1px solid #dde3ed; border-radius: 8px; padding: 1rem; }
+.result-table-wrapper h2 { font-size: 1rem; margin-bottom: .8rem; }
+.table-scroll { overflow-x: auto; }
+.result-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.result-table th, .result-table td { padding: .4rem .6rem; border: 1px solid #e0e4ec; text-align: right; }
+.result-table th { background: #f0f4ff; font-weight: 600; text-align: center; }
+.result-table td:first-child, .result-table th:first-child { text-align: center; }
+.result-table code { font-size: .8rem; background: #f5f5f5; padding: .1rem .3rem; border-radius: 3px; }
+.highlight { background: #e8f5e9 !important; color: #2e7d32; font-weight: bold; }
+.zero-row { background: #fff3e0; }
+
+/* ===== Placeholder ===== */
+.placeholder {
+  background: #fff; border: 2px dashed #b0bec5; border-radius: 8px;
+  padding: 3rem; text-align: center; color: #888; font-size: 1rem;
+}
+
+/* ===== Footer ===== */
+.app-footer { text-align: center; padding: 1.5rem 0 .5rem; color: #888; font-size: .82rem; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .main-content { flex-direction: column; }
+  .sidebar { flex: none; width: 100%; }
+}
